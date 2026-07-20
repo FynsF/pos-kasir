@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Struk Pembayaran</title>
+
+<style>
+
+body{
+
+font-family:monospace;
+
+width:300px;
+
+margin:auto;
+
+font-size:14px;
+
+}
+
+
+.center{
+
+text-align:center;
+
+}
+
+
+.line{
+
+border-top:1px dashed black;
+
+margin:10px 0;
+
+}
+
+
+table{
+
+width:100%;
+
+}
+
+
+td{
+
+padding:3px;
+
+}
+
+
+.total{
+
+font-weight:bold;
+
+font-size:18px;
+
+}
+
+
+
+@media print{
+
+button{
+
+display:none;
+
+}
+
+}
+
+
+</style>
+
+
+</head>
+
+
+<body>
+
+
+<div class="center">
+
+<h3>
+TOKO ANDA
+</h3>
+
+
+<p>
+Jl. Alamat Toko
+</p>
+
+
+</div>
+
+
+<div class="line"></div>
+
+
+
+<p>
+ID : <span id="id"></span>
+</p>
+
+
+<p>
+Tanggal :
+<span id="tanggal"></span>
+</p>
+
+
+
+<div class="line"></div>
+
+
+
+<table id="detail">
+
+
+</table>
+
+
+
+<div class="line"></div>
+
+
+
+<table>
+
+
+<tr>
+
+<td>
+TOTAL
+</td>
+
+
+<td align="right">
+
+Rp <span id="total"></span>
+
+</td>
+
+
+</tr>
+
+
+</table>
+
+
+
+
+<div class="line"></div>
+
+
+<div class="center">
+
+<p>
+QRIS
+</p>
+
+
+<p>
+Terima Kasih
+</p>
+
+
+<p>
+Semoga Berkah
+</p>
+
+
+</div>
+
+
+
+<br>
+
+
+<button onclick="window.print()">
+PRINT
+</button>
+
+
+
+
+<script src="struk.js"></script>
+
+
+</body>
+
+</html>

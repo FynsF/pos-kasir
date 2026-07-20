@@ -1,0 +1,172 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Customer Display QRIS</title>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="customer" onclick="fullscreen()">
+      <h1 id="judul">TOTAL PEMBAYARAN</h1>
+
+      <div class="total">Rp <span id="total"> 0 </span></div>
+
+      <img src="Qris Fyn.jpeg" class="qris" />
+
+      <h2 id="instruksi">Silahkan Scan QRIS</h2>
+
+      <p id="status">Menunggu transaksi...</p>
+    </div>
+
+    <script>
+      const API =
+        "https://script.google.com/macros/s/AKfycbz-1nUJmKOjNYQEUKRwAEBt7h1D9xs3injteRNf0WjJhY6aWk0U2hpbmpYjXuKmHRih/exec?action=display";
+
+      // menyimpan transaksi terakhir
+
+      let transaksiSebelumnya = "";
+
+      function cekTransaksi() {
+        fetch(API)
+          .then((res) => res.json())
+
+          .then((data) => {
+            console.log(data);
+
+            // jika belum ada transaksi
+
+            if (data.status == "kosong") {
+              resetDisplay();
+
+              return;
+            }
+
+            // jika transaksi sudah lunas
+
+            if (data.status == "Lunas") {
+              tampilSukses();
+
+              return;
+            }
+
+            // jika transaksi baru
+
+            if (data.id != transaksiSebelumnya) {
+              transaksiSebelumnya = data.id;
+            }
+
+            if (data.total) {
+              document.getElementById("total").innerHTML = Number(
+                data.total,
+              ).toLocaleString("id-ID");
+
+              document.getElementById("instruksi").innerHTML =
+                "Silahkan Scan QRIS";
+
+              document.getElementById("status").innerHTML =
+                "Menunggu Pembayaran";
+            }
+          })
+
+          .catch((error) => {
+            console.log(error);
+
+            document.getElementById("status").innerHTML = "Koneksi gagal";
+          });
+      }
+
+      // =================================
+      // TAMPIL PEMBAYARAN BERHASIL
+      // =================================
+
+      function tampilSukses() {
+        document.querySelector(".customer").innerHTML = `
+
+
+<h1>
+PEMBAYARAN BERHASIL
+</h1>
+
+
+<h2>
+TERIMA KASIH
+</h2>
+
+
+<p>
+Pesanan sedang diproses
+</p>
+
+
+`;
+
+        setTimeout(() => {
+          resetDisplay();
+        }, 5000);
+      }
+
+      // =================================
+      // RESET CUSTOMER DISPLAY
+      // =================================
+
+      function resetDisplay() {
+        document.querySelector(".customer").innerHTML = `
+
+
+
+<h1 id="judul">
+TOTAL PEMBAYARAN
+</h1>
+
+
+<div class="total">
+
+Rp <span id="total">
+0
+</span>
+
+</div>
+
+
+
+<img 
+src="qris.jpeg"
+class="qris"
+>
+
+
+
+<h2 id="instruksi">
+Silahkan Scan QRIS
+</h2>
+
+
+
+<p id="status">
+Menunggu transaksi...
+</p>
+
+
+
+`;
+      }
+
+      // =================================
+      // FULLSCREEN
+      // =================================
+
+      function fullscreen() {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen();
+        }
+      }
+
+      // cek setiap 2 detik
+
+      setInterval(cekTransaksi, 2000);
+
+      cekTransaksi();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+  <head>
+    <title>POS Kasir</title>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <!-- HEADER -->
+
+      <div class="header">
+        <div>
+          <h1>POS KASIR</h1>
+
+          <p id="status">Siap transaksi</p>
+        </div>
+
+        <button onclick="bukaCustomer()" class="btn customer-btn">
+          BUKA DISPLAY PEMBELI
+        </button>
+      </div>
+
+      <!-- PRODUK -->
+
+      <h2>Daftar Produk</h2>
+
+      <div id="produk">Memuat produk...</div>
+
+      <!-- KERANJANG -->
+
+      <h2>Keranjang Belanja</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Produk</th>
+
+            <th>Harga</th>
+
+            <th>Qty</th>
+
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+
+        <tbody id="keranjang"></tbody>
+      </table>
+
+      <!-- TOTAL -->
+
+      <div class="total-box">
+        <h2>
+          TOTAL : Rp
+          <span id="total"> 0 </span>
+        </h2>
+      </div>
+
+      <!-- BUTTON -->
+
+      <div class="button-area">
+        <button onclick="bayar()" class="btn bayar">BAYAR QRIS</button>
+
+        <button onclick="lunas()" class="btn lunas">SUDAH DIBAYAR</button>
+
+        <button onclick="resetTransaksi()" class="btn reset">
+          TRANSAKSI BARU
+        </button>
+
+        <button onclick="cetakStruk()" class="btn cetak">CETAK STRUK</button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
