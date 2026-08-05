@@ -1,57 +1,81 @@
 // =================================
-// AMBIL DATA TRANSAKSI
+// STRUK POS SYSTEM
 // =================================
 
-let transaksi = JSON.parse(localStorage.getItem("transaksi"));
+// AMBIL TRANSAKSI
 
-if (!transaksi) {
-  alert("Tidak ada transaksi");
+const transaksiData = localStorage.getItem("transaksi");
+
+if (!transaksiData) {
+  document.body.innerHTML = `
+
+<div style="
+text-align:center;
+font-family:Arial;
+padding:50px;
+">
+
+<h2>
+Transaksi Tidak Ditemukan
+</h2>
+
+<p>
+Silahkan kembali ke halaman kasir
+</p>
+
+
+</div>
+
+`;
 
   throw new Error("Data transaksi kosong");
 }
 
+let transaksi = JSON.parse(transaksiData);
+
 // =================================
-// DATA HEADER
+// HEADER STRUK
 // =================================
 
-document.getElementById("id").innerHTML = transaksi.id || generateInvoice();
+const invoice = transaksi.id || generateInvoice();
 
-document.getElementById("tanggal").innerHTML =
-  transaksi.tanggal || new Date().toLocaleString("id-ID");
+setText("id", invoice);
 
-// kasir
+setText("tanggal", transaksi.tanggal || formatTanggal());
 
-let kasir = document.getElementById("kasir");
-
-if (kasir) {
-  kasir.innerHTML = transaksi.kasir || "Admin";
-}
+setText("kasir", transaksi.kasir || "Admin");
 
 // =================================
 // DETAIL PRODUK
 // =================================
 
-let tabel = document.getElementById("detail");
+const detail = document.getElementById("detail");
 
-tabel.innerHTML = "";
+detail.innerHTML = "";
 
 let subtotal = 0;
 
-transaksi.items.forEach((item) => {
-  let jumlah = Number(item.harga_jual) * Number(item.qty);
+if (Array.isArray(transaksi.items) && transaksi.items.length > 0) {
+  transaksi.items.forEach((item) => {
+    const nama = potongNama(item.nama_produk);
 
-  subtotal += jumlah;
+    const qty = Number(item.qty || 0);
 
-  tabel.innerHTML += `
+    const harga = Number(item.harga_jual || 0);
 
+    const jumlah = qty * harga;
+
+    subtotal += jumlah;
+
+    detail.innerHTML += `
 
 
 <tr>
 
 
-<td class="nama-produk">
+<td class="item">
 
-${item.nama_produk}
+${nama}
 
 </td>
 
@@ -59,61 +83,86 @@ ${item.nama_produk}
 
 <td class="qty">
 
-${item.qty}
+${qty}
 
 </td>
 
 
 
-<td class="harga">
-
+<td class="price">
 
 ${formatRupiah(jumlah)}
 
-
 </td>
-
 
 
 </tr>
 
 
-
 `;
-});
+  });
+}
 
 // =================================
 // HITUNG TOTAL
 // =================================
 
-let diskon = 0;
+const diskon = Number(transaksi.diskon || 0);
 
-let pajak = 0;
+const pajak = Number(transaksi.pajak || 0);
 
 let total = subtotal - diskon + pajak;
 
-document.getElementById("subtotal").innerHTML = formatRupiah(subtotal);
-
-document.getElementById("diskon").innerHTML = formatRupiah(diskon);
-
-document.getElementById("pajak").innerHTML = formatRupiah(pajak);
-
-document.getElementById("total").innerHTML = formatRupiah(
-  transaksi.total || total,
-);
-
-// pembayaran
-
-let bayar = document.getElementById("bayar");
-
-let kembali = document.getElementById("kembali");
-
-if (bayar) {
-  bayar.innerHTML = formatRupiah(transaksi.bayar || transaksi.total);
+if (transaksi.total !== undefined && transaksi.total !== null) {
+  total = Number(transaksi.total);
 }
 
-if (kembali) {
-  kembali.innerHTML = formatRupiah(transaksi.kembali || 0);
+setText("subtotal", formatRupiah(subtotal));
+
+setText("diskon", formatRupiah(diskon));
+
+setText("pajak", formatRupiah(pajak));
+
+setText("total", formatRupiah(total));
+
+// =================================
+// PEMBAYARAN
+// =================================
+
+const bayar = Number(transaksi.bayar || total);
+
+const kembali = Number(transaksi.kembali ?? bayar - total);
+
+setText("bayar", formatRupiah(bayar));
+
+setText("kembali", formatRupiah(kembali));
+
+// =================================
+// SIMPAN DATA TERBARU
+// =================================
+
+transaksi.id = invoice;
+
+transaksi.total = total;
+
+transaksi.tanggal = transaksi.tanggal || formatTanggal();
+
+localStorage.setItem(
+  "transaksi",
+
+  JSON.stringify(transaksi),
+);
+
+// =================================
+// HELPER TEXT
+// =================================
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+
+  if (el) {
+    el.textContent = value;
+  }
 }
 
 // =================================
@@ -125,30 +174,83 @@ function formatRupiah(angka) {
 }
 
 // =================================
+// FORMAT TANGGAL
+// =================================
+
+function formatTanggal() {
+  const now = new Date();
+
+  return now.toLocaleString("id-ID", {
+    day: "2-digit",
+
+    month: "2-digit",
+
+    year: "numeric",
+
+    hour: "2-digit",
+
+    minute: "2-digit",
+  });
+}
+
+// =================================
+// POTONG NAMA PRODUK THERMAL
+// =================================
+
+function potongNama(nama) {
+  if (!nama) {
+    return "-";
+  }
+
+  nama = String(nama);
+
+  const max = 16;
+
+  if (nama.length > max) {
+    return nama.substring(0, max) + "...";
+  }
+
+  return nama;
+}
+
+// =================================
 // GENERATE INVOICE
 // =================================
 
 function generateInvoice() {
-  let waktu = Date.now();
+  const now = new Date();
 
-  return "INV-" + waktu;
+  const tahun = now.getFullYear();
+
+  const bulan = String(now.getMonth() + 1).padStart(2, "0");
+
+  const tanggal = String(now.getDate()).padStart(2, "0");
+
+  const random = String(Date.now()).slice(-5);
+
+  return "INV-" + tahun + bulan + tanggal + "-" + random;
 }
 
 // =================================
 // AUTO PRINT OPTIONAL
 // =================================
 
-// aktifkan jika ingin langsung print
-
 /*
+
 window.onload=function(){
+
 
 setTimeout(()=>{
 
+
 window.print();
 
-},500);
+
+},800);
+
 
 
 }
+
+
 */
