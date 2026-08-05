@@ -1,193 +1,270 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
 
-<head>
+    <title>Struk Pembayaran</title>
 
-<title>Struk Pembayaran</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
 
-<style>
+      body {
+        font-family: "Courier New", monospace;
 
-body{
+        width: 80mm;
 
-font-family:monospace;
+        margin: auto;
 
-width:300px;
+        font-size: 12px;
 
-margin:auto;
+        color: #000;
+      }
 
-font-size:14px;
+      .center {
+        text-align: center;
+      }
 
-}
+      .logo {
+        width: 60px;
 
+        height: 60px;
 
-.center{
+        object-fit: contain;
 
-text-align:center;
+        margin-bottom: 5px;
+      }
 
-}
+      h3 {
+        margin: 5px 0;
 
+        font-size: 16px;
+      }
 
-.line{
+      p {
+        margin: 3px 0;
+      }
 
-border-top:1px dashed black;
+      .line {
+        border-top: 1px dashed #000;
 
-margin:10px 0;
+        margin: 8px 0;
+      }
 
-}
+      table {
+        width: 100%;
 
+        border-collapse: collapse;
+      }
 
-table{
+      td {
+        padding: 3px 0;
 
-width:100%;
+        vertical-align: top;
+      }
 
-}
+      .nama-produk {
+        width: 45%;
+      }
 
+      .qty {
+        width: 10%;
 
-td{
+        text-align: center;
+      }
 
-padding:3px;
+      .harga {
+        text-align: right;
+      }
 
-}
+      .total {
+        font-size: 15px;
 
+        font-weight: bold;
+      }
 
-.total{
+      .footer {
+        text-align: center;
 
-font-weight:bold;
+        margin-top: 15px;
+      }
 
-font-size:18px;
+      button {
+        margin-top: 20px;
 
-}
+        width: 100%;
 
+        padding: 10px;
 
+        font-size: 14px;
 
-@media print{
+        cursor: pointer;
+      }
 
-button{
+      @media print {
+        body {
+          width: 80mm;
+        }
 
-display:none;
+        button {
+          display: none;
+        }
 
-}
+        @page {
+          size: 80mm auto;
 
-}
+          margin: 0;
+        }
+      }
+    </style>
+  </head>
 
+  <body>
+    <div class="center">
+      <!-- Logo optional -->
 
-</style>
+      <img src="Logo no background.png" class="logo" onerror="this.style.display = 'none'" />
 
+      <h3>FYNCOFFEE</h3>
 
-</head>
+      <p>Jl.Kesawan</p>
 
+      <p>Telp : 081269441924</p>
+    </div>
 
-<body>
+    <div class="line"></div>
 
+    <table>
+      <tr>
+        <td>No Invoice</td>
 
-<div class="center">
+        <td align="right">
+          <span id="id"> - </span>
+        </td>
+      </tr>
 
-<h3>
-TOKO ANDA
-</h3>
+      <tr>
+        <td>Tanggal</td>
 
+        <td align="right">
+          <span id="tanggal"> - </span>
+        </td>
+      </tr>
 
-<p>
-Jl. Alamat Toko
-</p>
+      <tr>
+        <td>Kasir</td>
 
+        <td align="right">
+          <span id="kasir"> Admin </span>
+        </td>
+      </tr>
+    </table>
 
-</div>
+    <div class="line"></div>
 
+    <table>
+      <thead>
+        <tr>
+          <td>Item</td>
 
-<div class="line"></div>
+          <td class="qty">Qty</td>
 
+          <td class="harga">Jumlah</td>
+        </tr>
+      </thead>
 
+      <tbody id="detail"></tbody>
+    </table>
 
-<p>
-ID : <span id="id"></span>
-</p>
+    <div class="line"></div>
 
+    <table>
+      <tr>
+        <td>Subtotal</td>
 
-<p>
-Tanggal :
-<span id="tanggal"></span>
-</p>
+        <td align="right">Rp <span id="subtotal"> 0 </span></td>
+      </tr>
 
+      <tr>
+        <td>Diskon</td>
 
+        <td align="right">Rp <span id="diskon"> 0 </span></td>
+      </tr>
 
-<div class="line"></div>
+      <tr>
+        <td>Pajak</td>
 
+        <td align="right">Rp <span id="pajak"> 0 </span></td>
+      </tr>
 
+      <tr class="total">
+        <td>TOTAL</td>
 
-<table id="detail">
+        <td align="right">Rp <span id="total"> 0 </span></td>
+      </tr>
 
+      <tr>
+        <td>Bayar</td>
 
-</table>
+        <td align="right">Rp <span id="bayar"> 0 </span></td>
+      </tr>
 
+      <tr>
+        <td>Kembali</td>
 
+        <td align="right">Rp <span id="kembali"> 0 </span></td>
+      </tr>
+    </table>
 
-<div class="line"></div>
+    <div class="line"></div>
 
+    <div class="footer">
+      <p>Pembayaran</p>
 
+      <h3>QRIS</h3>
 
-<table>
+      <p>================</p>
 
+      <p>Terima Kasih</p>
 
-<tr>
+      <p>Semoga Berkah</p>
 
-<td>
-TOTAL
-</td>
+      <p>*** Barang yang sudah dibeli tidak dapat dikembalikan ***</p>
+    </div>
 
+    <button onclick="window.print()">PRINT STRUK</button>
 
-<td align="right">
+    <button onclick="downloadPDF()">DOWNLOAD PDF</button>
 
-Rp <span id="total"></span>
+    <script src="struk.js"></script>
 
-</td>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+    <script>
+      function downloadPDF() {
+        const { jsPDF } = window.jspdf;
 
-</tr>
+        let pdf = new jsPDF({
+          orientation: "portrait",
 
+          unit: "mm",
 
-</table>
+          format: [80, 150],
+        });
 
+        let isi = document.body.innerText;
 
+        pdf.text(
+          isi,
 
+          5,
 
-<div class="line"></div>
+          10,
+        );
 
-
-<div class="center">
-
-<p>
-QRIS
-</p>
-
-
-<p>
-Terima Kasih
-</p>
-
-
-<p>
-Semoga Berkah
-</p>
-
-
-</div>
-
-
-
-<br>
-
-
-<button onclick="window.print()">
-PRINT
-</button>
-
-
-
-
-<script src="struk.js"></script>
-
-
-</body>
-
+        pdf.save("struk-pembayaran.pdf");
+      }
+    </script>
+  </body>
 </html>
