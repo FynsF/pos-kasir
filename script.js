@@ -1,5 +1,13 @@
+// =================================
+// CONFIG API
+// =================================
+
 const API =
   "https://script.google.com/macros/s/AKfycbz-1nUJmKOjNYQEUKRwAEBt7h1D9xs3injteRNf0WjJhY6aWk0U2hpbmpYjXuKmHRih/exec";
+
+// =================================
+// GLOBAL VARIABLE
+// =================================
 
 let produk = [];
 
@@ -7,13 +15,23 @@ let keranjang = [];
 
 let idTransaksiAktif = "";
 
+let namaKasir = "Admin";
+
 // =================================
-// LOAD PRODUK
+// START
 // =================================
 
-ambilProduk();
+document.addEventListener("DOMContentLoaded", () => {
+  ambilProduk();
+});
+
+// =================================
+// AMBIL PRODUK
+// =================================
 
 function ambilProduk() {
+  document.getElementById("produk").innerHTML = "Memuat produk...";
+
   fetch(API)
     .then((res) => res.json())
 
@@ -23,8 +41,8 @@ function ambilProduk() {
       tampilkanProduk();
     })
 
-    .catch((error) => {
-      console.log(error);
+    .catch((err) => {
+      console.log(err);
 
       document.getElementById("produk").innerHTML = "Gagal mengambil produk";
     });
@@ -43,26 +61,37 @@ function tampilkanProduk() {
     area.innerHTML += `
 
 
+
 <div class="card"
 onclick="tambah('${p.id_produk}')">
 
 
+
 <h3>
+
 ${p.nama_produk}
+
 </h3>
 
 
 <p>
+
 Rp ${formatRupiah(p.harga_jual)}
+
 </p>
 
 
 <p>
-Stok : ${p.stok}
+
+Stok :
+${p.stok}
+
 </p>
 
 
+
 </div>
+
 
 
 `;
@@ -78,17 +107,29 @@ function tambah(id) {
 
   if (!p) return;
 
+  if (Number(p.stok) <= 0) {
+    alert("Stok habis");
+
+    return;
+  }
+
   let cek = keranjang.find((x) => x.id_produk == id);
 
   if (cek) {
-    if (cek.qty < p.stok) {
+    if (cek.qty < Number(p.stok)) {
       cek.qty++;
     } else {
       alert("Stok tidak cukup");
     }
   } else {
     keranjang.push({
-      ...p,
+      id_produk: p.id_produk,
+
+      nama_produk: p.nama_produk,
+
+      harga_modal: Number(p.harga_modal),
+
+      harga_jual: Number(p.harga_jual),
 
       qty: 1,
     });
@@ -98,7 +139,7 @@ function tambah(id) {
 }
 
 // =================================
-// KERANJANG
+// TAMPIL KERANJANG
 // =================================
 
 function tampilkanKeranjang() {
@@ -109,24 +150,29 @@ function tampilkanKeranjang() {
   let total = 0;
 
   keranjang.forEach((p, index) => {
-    let subtotal = Number(p.harga_jual) * p.qty;
+    let subtotal = p.harga_jual * p.qty;
 
     total += subtotal;
 
     tabel.innerHTML += `
 
 
+
 <tr>
 
 
 <td>
+
 ${p.nama_produk}
+
 </td>
 
 
 
 <td>
+
 Rp ${formatRupiah(p.harga_jual)}
+
 </td>
 
 
@@ -158,7 +204,9 @@ Rp ${formatRupiah(subtotal)}
 </td>
 
 
+
 </tr>
+
 
 
 `;
@@ -168,15 +216,15 @@ Rp ${formatRupiah(subtotal)}
 }
 
 // =================================
-// TAMBAH QTY
+// QTY
 // =================================
 
 function tambahQty(index) {
   let item = keranjang[index];
 
-  let produkAsli = produk.find((x) => x.id_produk == item.id_produk);
+  let stok = produk.find((x) => x.id_produk == item.id_produk).stok;
 
-  if (item.qty < produkAsli.stok) {
+  if (item.qty < stok) {
     item.qty++;
   } else {
     alert("Stok tidak cukup");
@@ -184,10 +232,6 @@ function tambahQty(index) {
 
   tampilkanKeranjang();
 }
-
-// =================================
-// KURANG QTY
-// =================================
 
 function kurang(index) {
   if (keranjang[index].qty > 1) {
@@ -211,21 +255,16 @@ function bayar() {
   }
 
   let total = keranjang.reduce(
-    (sum, item) => sum + Number(item.harga_jual) * item.qty,
-
+    (sum, item) => sum + item.harga_jual * item.qty,
     0,
   );
 
-  let data = {
-    kasir: "Admin",
+  let transaksi = {
+    kasir: namaKasir,
 
     total: total,
 
-    total_item: keranjang.reduce(
-      (sum, item) => sum + item.qty,
-
-      0,
-    ),
+    total_item: keranjang.reduce((sum, item) => sum + item.qty, 0),
 
     items: keranjang,
   };
@@ -233,66 +272,48 @@ function bayar() {
   fetch(API, {
     method: "POST",
 
-    body: JSON.stringify(data),
+    body: JSON.stringify(transaksi),
   })
     .then((res) => res.json())
 
     .then((result) => {
-      console.log(result);
-
       idTransaksiAktif = result.id;
 
-      // simpan untuk struk
+      let dataStruk = {
+        id: result.id,
+
+        tanggal: new Date().toLocaleString("id-ID"),
+
+        kasir: namaKasir,
+
+        total: total,
+
+        items: [...keranjang],
+      };
 
       localStorage.setItem(
         "transaksi",
 
-        JSON.stringify({
-          id: result.id,
-
-          tanggal: new Date(),
-
-          total: total,
-
-          items: keranjang,
-        }),
+        JSON.stringify(dataStruk),
       );
 
       document.getElementById("status").innerHTML =
         "Menunggu pembayaran " + result.id;
-
-      alert("Transaksi berhasil\n" + result.id);
-
-      // buka customer display
 
       window.open(
         "customer.html",
 
         "customerDisplay",
 
-        "width=600,height=900",
+        "width=500,height=900",
       );
     })
 
-    .catch((error) => {
-      console.log(error);
+    .catch((err) => {
+      console.log(err);
 
       alert("Transaksi gagal");
     });
-}
-
-// =================================
-// BUKA CUSTOMER MANUAL
-// =================================
-
-function bukaCustomer() {
-  window.open(
-    "customer.html",
-
-    "customerDisplay",
-
-    "width=600,height=900",
-  );
 }
 
 // =================================
@@ -300,7 +321,7 @@ function bukaCustomer() {
 // =================================
 
 function lunas() {
-  if (idTransaksiAktif == "") {
+  if (!idTransaksiAktif) {
     alert("Belum ada transaksi");
 
     return;
@@ -312,14 +333,44 @@ function lunas() {
     .then((data) => {
       document.getElementById("status").innerHTML = "Pembayaran LUNAS";
 
-      alert("Pembayaran selesai");
+      alert("Pembayaran berhasil");
 
       ambilProduk();
     });
 }
 
 // =================================
-// TRANSAKSI BARU
+// CETAK STRUK
+// =================================
+
+function cetakStruk() {
+  let data = localStorage.getItem("transaksi");
+
+  if (!data) {
+    alert("Belum ada transaksi");
+
+    return;
+  }
+
+  window.open("struk.html", "_blank");
+}
+
+// =================================
+// CUSTOMER DISPLAY
+// =================================
+
+function bukaCustomer() {
+  window.open(
+    "customer.html",
+
+    "customerDisplay",
+
+    "width=500,height=900",
+  );
+}
+
+// =================================
+// RESET
 // =================================
 
 function resetTransaksi() {
@@ -335,27 +386,9 @@ function resetTransaksi() {
 }
 
 // =================================
-// CETAK STRUK
-// =================================
-
-function cetakStruk() {
-  if (!localStorage.getItem("transaksi")) {
-    alert("Belum ada transaksi");
-
-    return;
-  }
-
-  window.open(
-    "struk.html",
-
-    "_blank",
-  );
-}
-
-// =================================
 // FORMAT RUPIAH
 // =================================
 
 function formatRupiah(angka) {
-  return Number(angka).toLocaleString("id-ID");
+  return Number(angka || 0).toLocaleString("id-ID");
 }
