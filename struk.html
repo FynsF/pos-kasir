@@ -13,13 +13,25 @@
       body {
         font-family: "Courier New", monospace;
 
-        width: 80mm;
+        width: 72mm;
 
-        margin: auto;
+        margin: 0 auto;
+
+        padding: 0;
 
         font-size: 12px;
 
         color: #000;
+
+        background: #fff;
+      }
+
+      #struk {
+        width: 72mm;
+
+        padding: 5mm 2mm;
+
+        background: white;
       }
 
       .center {
@@ -27,9 +39,9 @@
       }
 
       .logo {
-        width: 60px;
+        width: 55px;
 
-        height: 60px;
+        height: 55px;
 
         object-fit: contain;
 
@@ -37,13 +49,13 @@
       }
 
       h3 {
-        margin: 5px 0;
+        margin: 3px 0;
 
         font-size: 16px;
       }
 
       p {
-        margin: 3px 0;
+        margin: 2px 0;
       }
 
       .line {
@@ -64,8 +76,12 @@
         vertical-align: top;
       }
 
-      .nama-produk {
-        width: 45%;
+      .right {
+        text-align: right;
+      }
+
+      .item {
+        width: 50%;
       }
 
       .qty {
@@ -74,7 +90,9 @@
         text-align: center;
       }
 
-      .harga {
+      .price {
+        width: 40%;
+
         text-align: right;
       }
 
@@ -87,24 +105,50 @@
       .footer {
         text-align: center;
 
-        margin-top: 15px;
+        font-size: 11px;
+
+        margin-top: 10px;
       }
 
       button {
-        margin-top: 20px;
+        width: 90%;
 
-        width: 100%;
+        margin: 10px auto;
 
-        padding: 10px;
+        display: block;
+
+        padding: 12px;
+
+        border: none;
+
+        border-radius: 8px;
+
+        background: #111;
+
+        color: white;
 
         font-size: 14px;
 
         cursor: pointer;
       }
 
+      /* =====================
+PRINT THERMAL 80MM
+===================== */
+
       @media print {
         body {
-          width: 80mm;
+          width: 72mm;
+
+          margin: 0 auto;
+
+          padding: 0;
+        }
+
+        #struk {
+          width: 72mm;
+
+          padding: 3mm 0;
         }
 
         button {
@@ -114,156 +158,197 @@
         @page {
           size: 80mm auto;
 
-          margin: 0;
+          margin: 4mm;
         }
       }
     </style>
   </head>
 
   <body>
-    <div class="center">
-      <!-- Logo optional -->
+    <div id="struk">
+      <div class="center">
+        <img
+          src="Logo no background.png"
+          class="logo"
+          crossorigin="anonymous"
+          onerror="this.style.display = 'none'"
+        />
 
-      <img src="Logo no background.png" class="logo" onerror="this.style.display = 'none'" />
+        <h3>FYNCOFFEE</h3>
 
-      <h3>FYNCOFFEE</h3>
+        <p>Jl. Kesawan</p>
 
-      <p>Jl.Kesawan</p>
+        <p>Telp : 081269441924</p>
+      </div>
 
-      <p>Telp : 081269441924</p>
-    </div>
+      <div class="line"></div>
 
-    <div class="line"></div>
-
-    <table>
-      <tr>
-        <td>No Invoice</td>
-
-        <td align="right">
-          <span id="id"> - </span>
-        </td>
-      </tr>
-
-      <tr>
-        <td>Tanggal</td>
-
-        <td align="right">
-          <span id="tanggal"> - </span>
-        </td>
-      </tr>
-
-      <tr>
-        <td>Kasir</td>
-
-        <td align="right">
-          <span id="kasir"> Admin </span>
-        </td>
-      </tr>
-    </table>
-
-    <div class="line"></div>
-
-    <table>
-      <thead>
+      <table>
         <tr>
-          <td>Item</td>
+          <td>No Invoice</td>
 
-          <td class="qty">Qty</td>
-
-          <td class="harga">Jumlah</td>
+          <td class="right">
+            <span id="id"> - </span>
+          </td>
         </tr>
-      </thead>
 
-      <tbody id="detail"></tbody>
-    </table>
+        <tr>
+          <td>Tanggal</td>
 
-    <div class="line"></div>
+          <td class="right">
+            <span id="tanggal"> - </span>
+          </td>
+        </tr>
 
-    <table>
-      <tr>
-        <td>Subtotal</td>
+        <tr>
+          <td>Kasir</td>
 
-        <td align="right">Rp <span id="subtotal"> 0 </span></td>
-      </tr>
+          <td class="right">
+            <span id="kasir"> Admin </span>
+          </td>
+        </tr>
+      </table>
 
-      <tr>
-        <td>Diskon</td>
+      <div class="line"></div>
 
-        <td align="right">Rp <span id="diskon"> 0 </span></td>
-      </tr>
+      <table>
+        <thead>
+          <tr>
+            <td class="item">Item</td>
 
-      <tr>
-        <td>Pajak</td>
+            <td class="qty">Qty</td>
 
-        <td align="right">Rp <span id="pajak"> 0 </span></td>
-      </tr>
+            <td class="price">Jumlah</td>
+          </tr>
+        </thead>
 
-      <tr class="total">
-        <td>TOTAL</td>
+        <tbody id="detail"></tbody>
+      </table>
 
-        <td align="right">Rp <span id="total"> 0 </span></td>
-      </tr>
+      <div class="line"></div>
 
-      <tr>
-        <td>Bayar</td>
+      <table>
+        <tr>
+          <td>Subtotal</td>
 
-        <td align="right">Rp <span id="bayar"> 0 </span></td>
-      </tr>
+          <td class="right">Rp <span id="subtotal">0</span></td>
+        </tr>
 
-      <tr>
-        <td>Kembali</td>
+        <tr>
+          <td>Diskon</td>
 
-        <td align="right">Rp <span id="kembali"> 0 </span></td>
-      </tr>
-    </table>
+          <td class="right">Rp <span id="diskon">0</span></td>
+        </tr>
 
-    <div class="line"></div>
+        <tr>
+          <td>Pajak</td>
 
-    <div class="footer">
-      <p>Pembayaran</p>
+          <td class="right">Rp <span id="pajak">0</span></td>
+        </tr>
 
-      <h3>QRIS</h3>
+        <tr class="total">
+          <td>TOTAL</td>
 
-      <p>================</p>
+          <td class="right">Rp <span id="total">0</span></td>
+        </tr>
 
-      <p>Terima Kasih</p>
+        <tr>
+          <td>Bayar</td>
 
-      <p>Semoga Berkah</p>
+          <td class="right">Rp <span id="bayar">0</span></td>
+        </tr>
 
-      <p>*** Barang yang sudah dibeli tidak dapat dikembalikan ***</p>
+        <tr>
+          <td>Kembali</td>
+
+          <td class="right">Rp <span id="kembali">0</span></td>
+        </tr>
+      </table>
+
+      <div class="line"></div>
+
+      <div class="footer">
+        <p>Pembayaran</p>
+
+        <h3>QRIS</h3>
+
+        <p>================</p>
+
+        <p>Terima Kasih</p>
+
+        <p>Semoga Berkah</p>
+
+        <p>*** Barang yang sudah dibeli tidak dapat dikembalikan ***</p>
+      </div>
     </div>
 
     <button onclick="window.print()">PRINT STRUK</button>
 
     <button onclick="downloadPDF()">DOWNLOAD PDF</button>
 
-    <script src="struk.js"></script>
+    <!-- PDF LIBRARY -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+    <!-- DATA STRUK -->
+
+    <script src="struk.js"></script>
+
     <script>
-      function downloadPDF() {
-        const { jsPDF } = window.jspdf;
+      async function downloadPDF() {
+        try {
+          const area = document.getElementById("struk");
 
-        let pdf = new jsPDF({
-          orientation: "portrait",
+          const canvas = await html2canvas(area, {
+            scale: 3,
 
-          unit: "mm",
+            useCORS: true,
 
-          format: [80, 150],
-        });
+            allowTaint: true,
 
-        let isi = document.body.innerText;
+            backgroundColor: "#ffffff",
+          });
 
-        pdf.text(
-          isi,
+          const imgData = canvas.toDataURL("image/png");
 
-          5,
+          const { jsPDF } = window.jspdf;
 
-          10,
-        );
+          let lebar = 72;
 
-        pdf.save("struk-pembayaran.pdf");
+          let tinggi = (canvas.height * lebar) / canvas.width;
+
+          const pdf = new jsPDF({
+            orientation: "portrait",
+
+            unit: "mm",
+
+            format: [80, tinggi + 15],
+          });
+
+          pdf.addImage(
+            imgData,
+
+            "PNG",
+
+            4,
+
+            5,
+
+            lebar,
+
+            tinggi,
+          );
+
+          let nomor = document.getElementById("id").innerText;
+
+          pdf.save("Struk-" + nomor + ".pdf");
+        } catch (error) {
+          console.error(error);
+
+          alert("Download PDF gagal");
+        }
       }
     </script>
   </body>
