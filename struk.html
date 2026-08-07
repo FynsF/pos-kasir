@@ -12,26 +12,18 @@
 
       body {
         font-family: "Courier New", monospace;
-
-        width: 72mm;
-
+        width: 48mm;
         margin: 0 auto;
-
         padding: 0;
-
-        font-size: 12px;
-
+        font-size: 10px;
         color: #000;
-
         background: #fff;
       }
 
       #struk {
-        width: 72mm;
-
-        padding: 5mm 2mm;
-
-        background: white;
+        width: 48mm;
+        padding: 2mm;
+        background: #fff;
       }
 
       .center {
@@ -39,40 +31,33 @@
       }
 
       .logo {
-        width: 55px;
-
-        height: 55px;
-
+        width: 42px;
+        height: 42px;
         object-fit: contain;
-
-        margin-bottom: 5px;
+        margin-bottom: 3px;
       }
 
       h3 {
-        margin: 3px 0;
-
-        font-size: 16px;
+        margin: 2px 0;
+        font-size: 12px;
       }
 
       p {
-        margin: 2px 0;
+        margin: 1px 0;
       }
 
       .line {
         border-top: 1px dashed #000;
-
-        margin: 8px 0;
+        margin: 5px 0;
       }
 
       table {
         width: 100%;
-
         border-collapse: collapse;
       }
 
       td {
-        padding: 3px 0;
-
+        padding: 2px 0;
         vertical-align: top;
       }
 
@@ -81,74 +66,52 @@
       }
 
       .item {
-        width: 50%;
+        width: 55%;
       }
 
       .qty {
-        width: 10%;
-
+        width: 12%;
         text-align: center;
       }
 
       .price {
-        width: 40%;
-
+        width: 33%;
         text-align: right;
       }
 
       .total {
-        font-size: 15px;
-
+        font-size: 11px;
         font-weight: bold;
       }
 
       .footer {
         text-align: center;
-
-        font-size: 11px;
-
-        margin-top: 10px;
+        font-size: 9px;
+        margin-top: 6px;
       }
 
       button {
-        width: 90%;
-
+        width: 95%;
         margin: 10px auto;
-
         display: block;
-
-        padding: 12px;
-
+        padding: 10px;
         border: none;
-
-        border-radius: 8px;
-
+        border-radius: 6px;
         background: #111;
-
-        color: white;
-
-        font-size: 14px;
-
+        color: #fff;
         cursor: pointer;
       }
 
-      /* =====================
-PRINT THERMAL 80MM
-===================== */
-
       @media print {
         body {
-          width: 72mm;
-
-          margin: 0 auto;
-
+          width: 48mm;
+          margin: 0;
           padding: 0;
         }
 
         #struk {
-          width: 72mm;
-
-          padding: 3mm 0;
+          width: 48mm;
+          padding: 2mm;
         }
 
         button {
@@ -156,9 +119,8 @@ PRINT THERMAL 80MM
         }
 
         @page {
-          size: 80mm auto;
-
-          margin: 4mm;
+          size: 58mm auto;
+          margin: 0;
         }
       }
     </style>
@@ -303,11 +265,7 @@ PRINT THERMAL 80MM
 
           const canvas = await html2canvas(area, {
             scale: 3,
-
             useCORS: true,
-
-            allowTaint: true,
-
             backgroundColor: "#ffffff",
           });
 
@@ -315,37 +273,23 @@ PRINT THERMAL 80MM
 
           const { jsPDF } = window.jspdf;
 
-          let lebar = 72;
+          const lebar = 48;
 
-          let tinggi = (canvas.height * lebar) / canvas.width;
+          const tinggi = (canvas.height * lebar) / canvas.width;
 
           const pdf = new jsPDF({
             orientation: "portrait",
-
             unit: "mm",
-
-            format: [80, tinggi + 15],
+            format: [58, tinggi + 4],
           });
 
-          pdf.addImage(
-            imgData,
+          pdf.addImage(imgData, "PNG", 5, 2, lebar, tinggi);
 
-            "PNG",
-
-            4,
-
-            5,
-
-            lebar,
-
-            tinggi,
-          );
-
-          let nomor = document.getElementById("id").innerText;
+          const nomor = document.getElementById("id").innerText;
 
           pdf.save("Struk-" + nomor + ".pdf");
-        } catch (error) {
-          console.error(error);
+        } catch (err) {
+          console.error(err);
 
           alert("Download PDF gagal");
         }
