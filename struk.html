@@ -7,23 +7,32 @@
 
     <style>
       * {
+        margin: 0;
+        padding: 0;
         box-sizing: border-box;
       }
 
+      html {
+        width: 58mm;
+        background: #fff;
+      }
+
       body {
-        font-family: "Courier New", monospace;
-        width: 48mm;
+        width: 58mm;
         margin: 0 auto;
         padding: 0;
-        font-size: 10px;
-        color: #000;
         background: #fff;
+        color: #000;
+        font-family: "Courier New", monospace;
+        font-size: 10px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
 
       #struk {
         width: 48mm;
-        padding: 2mm;
-        background: #fff;
+        margin: 0 auto;
+        padding: 2mm 0;
       }
 
       .center {
@@ -33,16 +42,19 @@
       .logo {
         width: 42px;
         height: 42px;
+        display: block;
+        margin: 0 auto 4px;
         object-fit: contain;
-        margin-bottom: 3px;
       }
 
       h3 {
-        margin: 2px 0;
         font-size: 12px;
+        margin: 2px 0;
+        font-weight: bold;
       }
 
       p {
+        line-height: 1.25;
         margin: 1px 0;
       }
 
@@ -61,12 +73,8 @@
         vertical-align: top;
       }
 
-      .right {
-        text-align: right;
-      }
-
       .item {
-        width: 55%;
+        width: 56%;
       }
 
       .qty {
@@ -75,13 +83,18 @@
       }
 
       .price {
-        width: 33%;
+        width: 32%;
         text-align: right;
       }
 
-      .total {
+      .right {
+        text-align: right;
+      }
+
+      .total td {
         font-size: 11px;
         font-weight: bold;
+        padding-top: 4px;
       }
 
       .footer {
@@ -91,37 +104,47 @@
       }
 
       button {
-        width: 95%;
-        margin: 10px auto;
+        width: 220px;
         display: block;
+        margin: 12px auto;
         padding: 10px;
         border: none;
         border-radius: 6px;
         background: #111;
         color: #fff;
         cursor: pointer;
+        font-size: 13px;
       }
 
       @media print {
+        @page {
+          size: 58mm auto;
+          margin: 0;
+        }
+
+        html,
         body {
-          width: 48mm;
+          width: 58mm;
           margin: 0;
           padding: 0;
+          background: #fff;
         }
 
         #struk {
           width: 48mm;
-          padding: 2mm;
+          margin-left: auto;
+          margin-right: auto;
+          padding: 2mm 0;
         }
 
         button {
           display: none;
         }
+      }
 
-        @page {
-          size: 58mm auto;
-          margin: 0;
-        }
+      @page {
+        size: 58mm auto;
+        margin: 0;
       }
     </style>
   </head>
@@ -230,17 +253,17 @@
       <div class="line"></div>
 
       <div class="footer">
-        <p>Pembayaran</p>
+        <p>Pembayaran QRIS</p>
 
-        <h3>QRIS</h3>
+        <div class="line"></div>
 
-        <p>================</p>
+        <p>Terima Kasih ☕</p>
 
-        <p>Terima Kasih</p>
+        <p>Semoga Harimu Menyenangkan</p>
 
-        <p>Semoga Berkah</p>
+        <p>Barang yang sudah dibeli</p>
 
-        <p>*** Barang yang sudah dibeli tidak dapat dikembalikan ***</p>
+        <p>tidak dapat dikembalikan.</p>
       </div>
     </div>
 
@@ -280,17 +303,16 @@
           const pdf = new jsPDF({
             orientation: "portrait",
             unit: "mm",
-            format: [58, tinggi + 4],
+            format: [58, tinggi + 2],
           });
 
-          pdf.addImage(imgData, "PNG", 5, 2, lebar, tinggi);
+          pdf.addImage(imgData, "PNG", 5, 1, lebar, tinggi);
 
           const nomor = document.getElementById("id").innerText;
 
           pdf.save("Struk-" + nomor + ".pdf");
         } catch (err) {
           console.error(err);
-
           alert("Download PDF gagal");
         }
       }
