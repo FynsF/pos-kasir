@@ -14,76 +14,131 @@
 
       html {
         width: 58mm;
+
+        margin: 0;
+
+        padding: 0;
+
         background: #fff;
       }
 
       body {
         width: 58mm;
+
         margin: 0 auto;
+
         padding: 0;
+
         background: #fff;
+
         color: #000;
-        font-family: "Courier New", monospace;
-        font-size: 10px;
+
+        font-family: "Arial Narrow", "Courier New", monospace;
+
+        font-size: 9px;
+
         -webkit-print-color-adjust: exact;
+
         print-color-adjust: exact;
       }
 
+      /* =====================
+   AREA STRUK PANDA TM
+===================== */
+
       #struk {
         width: 48mm;
-        margin: 0 auto;
-        padding: 2mm 0;
+
+        margin-left: auto;
+
+        margin-right: auto;
+
+        padding: 3mm 0 3mm 0;
       }
+
+      /* CENTER */
 
       .center {
         text-align: center;
       }
 
+      /* LOGO */
+
       .logo {
-        width: 42px;
-        height: 42px;
+        width: 40px;
+
+        height: 40px;
+
         display: block;
+
         margin: 0 auto 4px;
+
         object-fit: contain;
       }
 
+      /* HEADER */
+
       h3 {
-        font-size: 12px;
-        margin: 2px 0;
+        font-size: 13px;
+
         font-weight: bold;
+
+        margin: 2px 0;
       }
 
       p {
         line-height: 1.25;
+
         margin: 1px 0;
       }
 
+      /* GARIS */
+
       .line {
+        width: 100%;
+
         border-top: 1px dashed #000;
+
         margin: 5px 0;
       }
 
+      /* TABLE */
+
       table {
         width: 100%;
+
         border-collapse: collapse;
+
+        table-layout: fixed;
       }
 
       td {
         padding: 2px 0;
+
         vertical-align: top;
       }
 
+      /* ITEM */
+
       .item {
         width: 56%;
+
+        word-wrap: break-word;
       }
+
+      /* JUMLAH */
 
       .qty {
         width: 12%;
+
         text-align: center;
       }
 
+      /* HARGA */
+
       .price {
         width: 32%;
+
         text-align: right;
       }
 
@@ -91,50 +146,78 @@
         text-align: right;
       }
 
+      /* TOTAL */
+
       .total td {
         font-size: 11px;
+
         font-weight: bold;
-        padding-top: 4px;
+
+        padding-top: 5px;
       }
+
+      /* FOOTER */
 
       .footer {
         text-align: center;
+
         font-size: 9px;
+
         margin-top: 6px;
       }
 
+      /* BUTTON */
+
       button {
         width: 220px;
+
         display: block;
+
         margin: 12px auto;
+
         padding: 10px;
+
         border: none;
+
         border-radius: 6px;
+
         background: #111;
-        color: #fff;
+
+        color: white;
+
         cursor: pointer;
+
         font-size: 13px;
       }
+
+      /* =====================
+       PRINT PANDA TM
+===================== */
 
       @media print {
         @page {
           size: 58mm auto;
+
           margin: 0;
         }
 
         html,
         body {
           width: 58mm;
+
           margin: 0;
+
           padding: 0;
-          background: #fff;
         }
 
         #struk {
           width: 48mm;
+
           margin-left: auto;
+
           margin-right: auto;
-          padding: 2mm 0;
+
+          padding-top: 2mm;
         }
 
         button {
@@ -144,6 +227,7 @@
 
       @page {
         size: 58mm auto;
+
         margin: 0;
       }
     </style>
@@ -287,32 +371,49 @@
           const area = document.getElementById("struk");
 
           const canvas = await html2canvas(area, {
-            scale: 3,
-            useCORS: true,
+            scale: 4,
+
             backgroundColor: "#ffffff",
+
+            useCORS: true,
           });
 
           const imgData = canvas.toDataURL("image/png");
 
           const { jsPDF } = window.jspdf;
 
-          const lebar = 48;
+          const width = 48;
 
-          const tinggi = (canvas.height * lebar) / canvas.width;
+          const height = (canvas.height * width) / canvas.width;
 
           const pdf = new jsPDF({
             orientation: "portrait",
+
             unit: "mm",
-            format: [58, tinggi + 2],
+
+            format: [58, height + 4],
           });
 
-          pdf.addImage(imgData, "PNG", 5, 1, lebar, tinggi);
+          pdf.addImage(
+            imgData,
+
+            "PNG",
+
+            5,
+
+            2,
+
+            width,
+
+            height,
+          );
 
           const nomor = document.getElementById("id").innerText;
 
           pdf.save("Struk-" + nomor + ".pdf");
-        } catch (err) {
-          console.error(err);
+        } catch (error) {
+          console.error(error);
+
           alert("Download PDF gagal");
         }
       }
