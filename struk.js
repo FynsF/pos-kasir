@@ -204,7 +204,7 @@ function potongNama(nama) {
 
   nama = String(nama);
 
-  const max = 16;
+  const max = 13;
 
   if (nama.length > max) {
     return nama.substring(0, max) + "...";
