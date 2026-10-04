@@ -2,91 +2,2599 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#111111" />
+    <meta name="color-scheme" content="light" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="description"
+      content="FYNCOFFEE Point of Sale — Kasir, Keranjang, Pembayaran & Cetak Struk"
+    />
+    <meta name="application-name" content="FYNCOFFEE POS" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="FYNCOFFEE" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="FYNCOFFEE POS" />
+    <meta property="og:description" content="Point of Sale FYNCOFFEE" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FYNCOFFEE POS</title>
 
-    <title>POS Kasir</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%98%95%3C/text%3E%3C/svg%3E"
+    />
 
-    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* ============ RESET ============ */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        min-height: 100%;
+        background: #f5f5f5;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+      }
+      body {
+        min-height: 100vh;
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        background: #f5f5f5;
+        color: #171717;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+        color: inherit;
+      }
+      button {
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        border: 0;
+        background: none;
+      }
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+      input,
+      textarea,
+      select {
+        outline: none;
+      }
+      img,
+      svg {
+        max-width: 100%;
+        display: block;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      body.modal-open {
+        overflow: hidden;
+        touch-action: none;
+      }
+      ::selection {
+        background: rgba(17, 24, 39, 0.15);
+        color: #171717;
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #d4d4d4;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #b5b5b5;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: 12px;
+        top: -60px;
+        z-index: 9999;
+        padding: 10px 16px;
+        background: #171717;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 800;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: top 0.2s ease;
+      }
+      .skip-link:focus {
+        top: 12px;
+      }
+
+      /* ============ TOPBAR ============ */
+      .topbar {
+        height: 70px;
+        background: #111;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        padding-top: env(safe-area-inset-top, 0);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+      .brand-logo {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        border-radius: 12px;
+        background: #fff;
+        color: #111;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: 900;
+      }
+      .brand-info {
+        min-width: 0;
+      }
+      .brand-title {
+        font-size: 20px;
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: 1px;
+      }
+      .brand-subtitle {
+        font-size: 10px;
+        color: #a3a3a3;
+        margin-top: 5px;
+        letter-spacing: 0.8px;
+      }
+
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .clock {
+        font-size: 14px;
+        font-weight: 800;
+        color: #e5e5e5;
+        font-variant-numeric: tabular-nums;
+      }
+      .connection {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #e5e5e5;
+      }
+      .connection-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+        transition:
+          background 0.2s,
+          box-shadow 0.2s;
+      }
+      .connection-dot.offline {
+        background: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+      }
+      .connection-dot.loading {
+        background: #f59e0b;
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+        animation: connPulse 1.4s ease-in-out infinite;
+      }
+      @keyframes connPulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .top-icon-btn {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.08);
+        color: #e5e5e5;
+        border-radius: 10px;
+        font-size: 16px;
+        transition:
+          background 0.15s,
+          transform 0.15s;
+      }
+      .top-icon-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+      .top-icon-btn:active {
+        transform: scale(0.92);
+      }
+      .top-icon-btn.active {
+        background: rgba(34, 197, 94, 0.2);
+        color: #4ade80;
+      }
+
+      /* ============ MAIN LAYOUT ============ */
+      .app {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 400px;
+        min-height: calc(100vh - 70px);
+      }
+      .products-section {
+        padding: 24px;
+        min-width: 0;
+      }
+
+      .cart-section {
+        background: #fff;
+        border-left: 1px solid #e5e5e5;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        position: sticky;
+        top: 70px;
+        height: calc(100vh - 70px);
+        z-index: 200;
+      }
+
+      /* ============ TOOLBAR ============ */
+      .toolbar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+      .search-wrapper {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+      }
+      .search-input {
+        width: 100%;
+        height: 48px;
+        border: 1px solid #d4d4d4;
+        border-radius: 13px;
+        padding: 0 45px 0 43px;
+        outline: none;
+        background: #fff;
+        color: #171717;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      .search-input::placeholder {
+        color: #a3a3a3;
+      }
+      .search-input:focus {
+        border-color: #171717;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+      }
+      .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #737373;
+        pointer-events: none;
+        font-size: 16px;
+      }
+      .clear-search {
+        position: absolute;
+        right: 11px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: transparent;
+        color: #737373;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        line-height: 1;
+        transition: background 0.15s;
+      }
+      .clear-search.visible {
+        display: flex;
+      }
+      .clear-search:hover {
+        background: #f5f5f5;
+      }
+      .refresh-btn {
+        height: 48px;
+        padding: 0 18px;
+        border-radius: 13px;
+        background: #171717;
+        color: #fff;
+        font-weight: 800;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition:
+          transform 0.2s,
+          background 0.2s;
+      }
+      .refresh-btn:hover:not(:disabled) {
+        background: #333;
+        transform: translateY(-1px);
+      }
+      .refresh-btn:active:not(:disabled) {
+        transform: scale(0.98);
+      }
+      .refresh-btn.spinning {
+        animation: spinOnce 0.7s ease;
+      }
+      @keyframes spinOnce {
+        from {
+          transform: rotate(0);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ============ CATEGORY ============ */
+      .category-wrapper {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 2px 2px 7px;
+        margin-bottom: 20px;
+        scrollbar-width: thin;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+      .category-wrapper::-webkit-scrollbar {
+        height: 4px;
+      }
+      .category-wrapper::-webkit-scrollbar-thumb {
+        background: #d4d4d4;
+        border-radius: 10px;
+      }
+      .category-btn {
+        border: 1px solid #dedede;
+        background: #fff;
+        color: #525252;
+        border-radius: 999px;
+        padding: 9px 16px;
+        white-space: nowrap;
+        font-size: 13px;
+        font-weight: 700;
+        transition:
+          background 0.2s,
+          color 0.2s,
+          border-color 0.2s,
+          transform 0.2s;
+      }
+      .category-btn:hover {
+        border-color: #171717;
+        transform: translateY(-1px);
+      }
+      .category-btn.active {
+        background: #171717;
+        color: #fff;
+        border-color: #171717;
+      }
+
+      /* ============ HEADING ============ */
+      .section-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .section-heading h2 {
+        font-size: 18px;
+        font-weight: 900;
+      }
+      .section-heading span {
+        color: #737373;
+        font-size: 12px;
+        text-align: right;
+      }
+
+      /* ============ PRODUCT GRID ============ */
+      .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+        gap: 14px;
+      }
+      .product-card {
+        position: relative;
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 17px;
+        padding: 18px;
+        min-height: 165px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition:
+          transform 0.18s,
+          box-shadow 0.18s,
+          border-color 0.18s;
+        cursor: pointer;
+        user-select: none;
+        outline: none;
+        animation: cardIn 0.25s ease both;
+      }
+      @keyframes cardIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .product-card:hover,
+      .product-card:focus-visible {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+        border-color: #c4c4c4;
+      }
+      .product-card:active {
+        transform: scale(0.985);
+      }
+      .product-card.out-of-stock {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .product-card.out-of-stock:hover {
+        transform: none;
+        box-shadow: none;
+      }
+      .product-category {
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        color: #737373;
+        margin-bottom: 10px;
+      }
+      .product-name {
+        font-size: 16px;
+        font-weight: 900;
+        line-height: 1.3;
+        margin-bottom: 14px;
+        overflow-wrap: anywhere;
+      }
+      .product-price {
+        font-size: 17px;
+        font-weight: 900;
+        margin-bottom: 8px;
+        font-variant-numeric: tabular-nums;
+      }
+      .stock-label {
+        font-size: 11px;
+        color: #737373;
+        font-weight: 700;
+      }
+      .stock-label.low {
+        color: #d97706;
+      }
+      .stock-label.empty {
+        color: #dc2626;
+      }
+
+      /* Badge kecil di pojok kartu */
+      .product-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 6px;
+        border-radius: 999px;
+        background: #171717;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 900;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-variant-numeric: tabular-nums;
+        animation: badgePop 0.3s var(--ease, ease);
+      }
+      .product-badge.visible {
+        display: flex;
+      }
+      @keyframes badgePop {
+        from {
+          transform: scale(0);
+        }
+        to {
+          transform: scale(1);
+        }
+      }
+
+      /* ============ EMPTY STATE ============ */
+      .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 70px 20px;
+        color: #737373;
+      }
+      .empty-icon {
+        font-size: 45px;
+        margin-bottom: 15px;
+      }
+      .empty-state h3 {
+        color: #262626;
+        margin-bottom: 7px;
+      }
+      .empty-state p {
+        font-size: 13px;
+      }
+
+      /* ============ SKELETON ============ */
+      .skeleton {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 17px;
+        min-height: 165px;
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .skeleton span {
+        display: block;
+        height: 12px;
+        border-radius: 6px;
+        background: linear-gradient(
+          90deg,
+          #f0f0f0 25%,
+          #e4e4e4 37%,
+          #f0f0f0 63%
+        );
+        background-size: 400% 100%;
+        animation: shimmer 1.3s ease infinite;
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0 50%;
+        }
+      }
+
+      /* ============ CART HEADER ============ */
+      .cart-header {
+        min-height: 70px;
+        padding: 16px 20px;
+        border-bottom: 1px solid #e5e5e5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .cart-title {
+        font-size: 19px;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .cart-count {
+        background: #171717;
+        color: #fff;
+        min-width: 25px;
+        height: 25px;
+        padding: 0 7px;
+        border-radius: 999px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 900;
+        font-variant-numeric: tabular-nums;
+      }
+      .cart-count.visible {
+        display: flex;
+      }
+      .cart-close {
+        display: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        background: #f5f5f5;
+        font-size: 18px;
+        line-height: 1;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+      }
+      .cart-close:hover {
+        background: #e5e5e5;
+      }
+
+      /* ============ ORDER META (Tipe Pesanan + Customer) ============ */
+      .order-meta {
+        padding: 12px 20px 14px;
+        border-bottom: 1px solid #f0f0f0;
+        background: #fafafa;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .order-type-label {
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #737373;
+        margin-bottom: 2px;
+      }
+      .order-type-group {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+      .order-type-btn {
+        min-height: 38px;
+        border: 1px solid #d4d4d4;
+        background: #fff;
+        color: #525252;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 800;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        transition: all 0.15s;
+        line-height: 1.1;
+      }
+      .order-type-btn .icon {
+        font-size: 14px;
+        line-height: 1;
+      }
+      .order-type-btn:hover {
+        border-color: #171717;
+      }
+      .order-type-btn.active {
+        background: #171717;
+        color: #fff;
+        border-color: #171717;
+      }
+      .customer-row {
+        display: flex;
+        gap: 6px;
+      }
+      .customer-input,
+      .note-input {
+        width: 100%;
+        height: 40px;
+        border: 1px solid #d4d4d4;
+        border-radius: 10px;
+        padding: 0 12px;
+        font-size: 12px;
+        font-weight: 700;
+        background: #fff;
+        color: #171717;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      .customer-input::placeholder,
+      .note-input::placeholder {
+        color: #a3a3a3;
+        font-weight: 600;
+      }
+      .customer-input:focus,
+      .note-input:focus {
+        border-color: #171717;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+      }
+
+      /* ============ CART CONTENT ============ */
+      .cart-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 6px 18px;
+        scrollbar-width: thin;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+      }
+      .cart-empty {
+        height: 100%;
+        min-height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: #a3a3a3;
+        padding: 30px;
+      }
+      .cart-empty-icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+      }
+      .cart-empty h3 {
+        color: #525252;
+        margin-bottom: 5px;
+        font-size: 15px;
+      }
+      .cart-empty p {
+        font-size: 12px;
+      }
+
+      /* ============ CART ITEM ============ */
+      .cart-item {
+        padding: 14px 0;
+        border-bottom: 1px solid #f0f0f0;
+        animation: itemIn 0.2s ease;
+      }
+      @keyframes itemIn {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .cart-item:last-child {
+        border-bottom: 0;
+      }
+      .cart-item-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .cart-item-name {
+        font-size: 14px;
+        font-weight: 800;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+      }
+      .cart-item-price {
+        font-size: 12px;
+        color: #737373;
+        margin-top: 3px;
+        font-variant-numeric: tabular-nums;
+      }
+      .cart-item-stock-warning {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 4px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: #fef3c7;
+        color: #92400e;
+        font-size: 10px;
+        font-weight: 800;
+      }
+      .cart-item-remove {
+        flex: 0 0 auto;
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: #fafafa;
+        color: #a3a3a3;
+        font-size: 15px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.2s,
+          color 0.2s,
+          transform 0.15s;
+      }
+      .cart-item-remove:hover {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      .cart-item-remove:active {
+        transform: scale(0.9);
+      }
+      .cart-item-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .qty-control {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .qty-btn {
+        width: 31px;
+        height: 31px;
+        border: 1px solid #d4d4d4;
+        border-radius: 9px;
+        background: #fff;
+        font-size: 17px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          transform 0.15s;
+      }
+      .qty-btn:hover {
+        background: #f5f5f5;
+        border-color: #171717;
+      }
+      .qty-btn:active {
+        transform: scale(0.92);
+      }
+      .qty-value {
+        min-width: 26px;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 900;
+        font-variant-numeric: tabular-nums;
+      }
+      .cart-item-subtotal {
+        font-size: 14px;
+        font-weight: 900;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ============ CART FOOTER ============ */
+      .cart-footer {
+        border-top: 1px solid #e5e5e5;
+        padding: 16px 18px;
+        background: #fff;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      }
+      .summary-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 9px;
+        font-size: 13px;
+        color: #525252;
+      }
+      .summary-row strong {
+        white-space: nowrap;
+        color: #171717;
+        font-variant-numeric: tabular-nums;
+      }
+      .summary-row.total {
+        margin-top: 13px;
+        padding-top: 14px;
+        border-top: 1px dashed #d4d4d4;
+        font-size: 20px;
+        font-weight: 900;
+        color: #171717;
+      }
+      .summary-row.total strong {
+        font-size: 22px;
+      }
+
+      .payment-title {
+        font-size: 12px;
+        color: #737373;
+        font-weight: 800;
+        margin: 16px 0 9px;
+      }
+      .payment-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+      }
+      .payment-btn {
+        min-height: 52px;
+        border: 1px solid #d4d4d4;
+        background: #fff;
+        border-radius: 12px;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition:
+          background 0.2s,
+          border-color 0.2s,
+          transform 0.2s;
+      }
+      .payment-btn:hover:not(:disabled) {
+        background: #f5f5f5;
+        border-color: #171717;
+      }
+      .payment-btn:active:not(:disabled) {
+        transform: scale(0.98);
+      }
+      .payment-btn.cash {
+        background: #171717;
+        color: #fff;
+        border-color: #171717;
+      }
+      .payment-btn.cash:hover:not(:disabled) {
+        background: #333;
+        border-color: #333;
+      }
+      .payment-btn.qris {
+        background: #f3f3f3;
+      }
+
+      .secondary-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 9px;
+      }
+      .secondary-btn {
+        min-height: 42px;
+        border-radius: 10px;
+        background: #f5f5f5;
+        color: #525252;
+        font-size: 12px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        transition: background 0.2s;
+      }
+      .secondary-btn:hover {
+        background: #e5e5e5;
+      }
+
+      /* ============ MODAL ============ */
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        z-index: 500;
+        overscroll-behavior: contain;
+      }
+      .modal.active {
+        display: flex;
+      }
+      .modal-box {
+        width: 100%;
+        max-width: 430px;
+        max-height: calc(100vh - 40px);
+        max-height: calc(100dvh - 40px);
+        overflow-y: auto;
+        background: #fff;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+        animation: modalIn 0.22s ease;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+      }
+      @keyframes modalIn {
+        from {
+          opacity: 0;
+          transform: translateY(14px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 22px;
+      }
+      .modal-header h2 {
+        font-size: 20px;
+        font-weight: 900;
+      }
+      .close-btn {
+        flex: 0 0 auto;
+        width: 35px;
+        height: 35px;
+        border-radius: 10px;
+        background: #f5f5f5;
+        font-size: 20px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      }
+      .close-btn:hover {
+        background: #e5e5e5;
+      }
+
+      /* ============ CASH MODAL ============ */
+      .cash-total-box {
+        background: #f5f5f5;
+        border-radius: 15px;
+        padding: 17px;
+        text-align: center;
+        margin-bottom: 17px;
+      }
+      .cash-total-box span {
+        display: block;
+        color: #737373;
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+      .cash-total-box strong {
+        font-size: 27px;
+        font-weight: 900;
+        font-variant-numeric: tabular-nums;
+      }
+      .cash-input {
+        width: 100%;
+        height: 56px;
+        border: 1px solid #d4d4d4;
+        border-radius: 13px;
+        padding: 0 15px;
+        font-size: 20px;
+        font-weight: 800;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        -moz-appearance: textfield;
+      }
+      .cash-input::-webkit-outer-spin-button,
+      .cash-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .cash-input:focus {
+        border-color: #171717;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+      }
+      .cash-input.invalid {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
+      }
+
+      .cash-error {
+        display: none;
+        color: #dc2626;
+        font-size: 12px;
+        font-weight: 700;
+        margin-top: 7px;
+      }
+      .cash-error.visible {
+        display: block;
+      }
+
+      .quick-cash {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+        margin-top: 10px;
+      }
+      .quick-btn {
+        border: 1px solid #d4d4d4;
+        background: #fff;
+        border-radius: 9px;
+        min-height: 40px;
+        font-size: 12px;
+        font-weight: 800;
+        transition:
+          background 0.15s,
+          border-color 0.15s,
+          transform 0.15s;
+      }
+      .quick-btn:hover {
+        background: #f5f5f5;
+        border-color: #171717;
+      }
+      .quick-btn:active {
+        transform: scale(0.96);
+      }
+
+      .change-box {
+        background: #fafafa;
+        border: 1px solid #e5e5e5;
+        border-radius: 13px;
+        padding: 14px;
+        margin-top: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .change-box span {
+        color: #737373;
+        font-size: 12px;
+      }
+      .change-box strong {
+        font-size: 19px;
+        font-variant-numeric: tabular-nums;
+      }
+      .change-box.negative strong {
+        color: #dc2626;
+      }
+
+      .confirm-cash-btn {
+        width: 100%;
+        min-height: 52px;
+        border-radius: 13px;
+        background: #171717;
+        color: #fff;
+        font-weight: 900;
+        margin-top: 15px;
+        transition:
+          background 0.2s,
+          transform 0.15s;
+      }
+      .confirm-cash-btn:hover:not(:disabled) {
+        background: #333;
+      }
+      .confirm-cash-btn:active:not(:disabled) {
+        transform: scale(0.98);
+      }
+
+      /* ============ QRIS MODAL ============ */
+      .qris-box {
+        text-align: center;
+      }
+      .qris-image-frame {
+        width: min(240px, 70vw);
+        aspect-ratio: 1/1;
+        margin: 0 auto 16px;
+        padding: 10px;
+        border-radius: 18px;
+        border: 2px solid #e5e5e5;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      }
+      .qris-image-frame img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 10px;
+      }
+      .qris-fallback {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        height: 100%;
+        color: #737373;
+        font-size: 11px;
+        font-weight: 700;
+        text-align: center;
+        background: repeating-linear-gradient(
+          45deg,
+          #fafafa,
+          #fafafa 10px,
+          #f3f3f3 10px,
+          #f3f3f3 20px
+        );
+        border-radius: 10px;
+      }
+      .qris-fallback .qr-icon {
+        font-size: 50px;
+        line-height: 1;
+        color: #171717;
+      }
+
+      .qris-amount {
+        font-size: 26px;
+        font-weight: 900;
+        margin-bottom: 4px;
+        font-variant-numeric: tabular-nums;
+      }
+      .qris-hint {
+        font-size: 12px;
+        color: #737373;
+        margin-bottom: 18px;
+        line-height: 1.5;
+      }
+      .qris-actions {
+        display: grid;
+        grid-template-columns: 1fr 1.4fr;
+        gap: 9px;
+      }
+
+      .btn-ghost {
+        min-height: 50px;
+        border: 1px solid #d4d4d4;
+        background: #fff;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 13px;
+        transition: background 0.15s;
+      }
+      .btn-ghost:hover {
+        background: #f5f5f5;
+      }
+
+      .btn-dark {
+        min-height: 50px;
+        background: #171717;
+        color: #fff;
+        border-radius: 12px;
+        font-weight: 900;
+        font-size: 13px;
+        transition: background 0.15s;
+      }
+      .btn-dark:hover {
+        background: #333;
+      }
+
+      /* ============ RECEIPT MODAL ============ */
+      .receipt-modal-box {
+        max-width: 420px;
+      }
+      .success-badge {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #dcfce7;
+        color: #166534;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 13px;
+        font-weight: 800;
+        margin-bottom: 16px;
+        line-height: 1.35;
+      }
+      .success-badge .check {
+        width: 24px;
+        height: 24px;
+        flex: 0 0 24px;
+        border-radius: 50%;
+        background: #16a34a;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+      }
+      .receipt-actions {
+        display: grid;
+        grid-template-columns: 1fr 1.3fr;
+        gap: 9px;
+        margin-top: 16px;
+      }
+      .receipt-actions.secondary-row {
+        grid-template-columns: 1fr;
+        margin-top: 8px;
+      }
+      .btn-new-trx {
+        min-height: 50px;
+        background: linear-gradient(135deg, #047857, #10b981);
+        color: #fff;
+        border-radius: 12px;
+        font-weight: 900;
+        font-size: 13px;
+        transition:
+          filter 0.15s,
+          transform 0.15s;
+      }
+      .btn-new-trx:hover {
+        filter: brightness(0.96);
+      }
+      .btn-new-trx:active {
+        transform: scale(0.98);
+      }
+
+      /* ============ RECEIPT PAPER ============ */
+      .r-paper {
+        width: 58mm;
+        max-width: 100%;
+        background: #fff;
+        color: #000;
+        font-family: "Courier New", ui-monospace, monospace;
+        font-size: 11px;
+        line-height: 1.45;
+        padding: 14px 12px;
+        margin: 0 auto;
+        border: 1px dashed #d4d4d4;
+        border-radius: 6px;
+      }
+      .receipt-modal-box .r-paper {
+        max-height: 52vh;
+        overflow-y: auto;
+        scrollbar-width: thin;
+      }
+      .r-center {
+        text-align: center;
+      }
+      .r-store {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+      .r-small {
+        font-size: 10px;
+      }
+      .r-line {
+        border-top: 1px dashed #000;
+        margin: 6px 0;
+      }
+      .r-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .r-bold {
+        font-weight: 700;
+        font-size: 12px;
+      }
+      .r-item {
+        margin-bottom: 4px;
+      }
+      .r-item-name {
+        word-break: break-word;
+      }
+
+      .receipt-container {
+        display: none;
+      }
+
+      /* ============ TOAST ============ */
+      #toastContainer {
+        position: fixed;
+        right: 20px;
+        bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: max-content;
+        max-width: 350px;
+        pointer-events: none;
+      }
+      .toast {
+        padding: 13px 16px;
+        background: #171717;
+        color: #fff;
+        border-radius: 11px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+        font-size: 13px;
+        font-weight: 700;
+        animation: toastIn 0.25s ease;
+        max-width: 350px;
+        pointer-events: auto;
+        line-height: 1.4;
+      }
+      .toast-success {
+        background: #166534;
+      }
+      .toast-error {
+        background: #991b1b;
+      }
+      .toast-info {
+        background: #171717;
+      }
+      .toast.hide {
+        opacity: 0;
+        transform: translateX(20px);
+        transition: 0.3s;
+      }
+      @keyframes toastIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ============ LOADING OVERLAY ============ */
+      #loadingOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+        z-index: 900;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 12px;
+      }
+      #loadingOverlay.active {
+        display: flex;
+      }
+      .loading-spinner {
+        width: 42px;
+        height: 42px;
+        border: 4px solid #e5e5e5;
+        border-top-color: #171717;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      .loading-text {
+        font-size: 13px;
+        font-weight: 800;
+        color: #525252;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ============ MOBILE CART ============ */
+      .mobile-cart-button {
+        display: none;
+        position: fixed;
+        right: 18px;
+        bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+        z-index: 350;
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: #171717;
+        color: #fff;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        transition: transform 0.15s;
+      }
+      .mobile-cart-button:active {
+        transform: scale(0.94);
+      }
+      .mobile-cart-badge {
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: #dc2626;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 900;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-variant-numeric: tabular-nums;
+      }
+      .mobile-cart-badge.visible {
+        display: flex;
+      }
+      .mobile-cart-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        z-index: 390;
+        animation: fadeIn 0.2s ease;
+      }
+      .mobile-cart-backdrop.active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* ============ RESPONSIVE ============ */
+      @media (max-width: 900px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+        .cart-section {
+          position: fixed;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          width: min(420px, 92vw);
+          height: 100vh;
+          height: 100dvh;
+          z-index: 400;
+          transform: translateX(100%);
+          transition: transform 0.25s ease;
+          box-shadow: -15px 0 40px rgba(0, 0, 0, 0.15);
+        }
+        .cart-section.mobile-open {
+          transform: translateX(0);
+        }
+        .cart-close {
+          display: flex;
+        }
+        .mobile-cart-button {
+          display: flex;
+        }
+        .products-section {
+          padding: 18px;
+        }
+      }
+
+      @media (max-width: 550px) {
+        .topbar {
+          height: 62px;
+          padding: 0 15px;
+          padding-top: env(safe-area-inset-top, 0);
+        }
+        .app {
+          min-height: calc(100vh - 62px);
+        }
+        .cart-section {
+          top: 0;
+        }
+        .brand-title {
+          font-size: 16px;
+        }
+        .brand-subtitle {
+          font-size: 8px;
+        }
+        .brand-logo {
+          width: 36px;
+          height: 36px;
+          flex-basis: 36px;
+          border-radius: 10px;
+          font-size: 17px;
+        }
+        .clock {
+          display: none;
+        }
+        .top-icon-btn {
+          width: 34px;
+          height: 34px;
+          font-size: 14px;
+        }
+        .products-section {
+          padding: 13px;
+        }
+        .toolbar {
+          flex-direction: column;
+          gap: 9px;
+        }
+        .refresh-btn {
+          width: 100%;
+          justify-content: center;
+        }
+        .product-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+        }
+        .product-card {
+          min-height: 150px;
+          padding: 14px;
+          border-radius: 14px;
+        }
+        .product-category {
+          font-size: 9px;
+        }
+        .product-name {
+          font-size: 14px;
+        }
+        .product-price {
+          font-size: 15px;
+        }
+        .category-wrapper {
+          margin-bottom: 14px;
+        }
+        .section-heading h2 {
+          font-size: 16px;
+        }
+        .section-heading span {
+          font-size: 10px;
+        }
+        .cart-header {
+          min-height: 62px;
+        }
+
+        #toastContainer {
+          left: 12px;
+          right: 12px;
+          bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+          width: auto;
+          max-width: none;
+        }
+        .toast {
+          max-width: none;
+        }
+
+        .modal {
+          padding: 12px;
+        }
+        .modal-box {
+          border-radius: 18px;
+          padding: 18px;
+        }
+        .cash-total-box strong {
+          font-size: 24px;
+        }
+      }
+
+      @media (max-width: 360px) {
+        .product-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        .product-card {
+          padding: 12px;
+        }
+        .product-name {
+          font-size: 13px;
+        }
+        .product-price {
+          font-size: 14px;
+        }
+        .cart-section {
+          width: 96vw;
+        }
+        .quick-cash {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @supports (padding: env(safe-area-inset-top)) {
+        .topbar {
+          padding-top: max(0px, env(safe-area-inset-top));
+          height: calc(70px + env(safe-area-inset-top));
+        }
+        @media (max-width: 550px) {
+          .topbar {
+            height: calc(62px + env(safe-area-inset-top));
+          }
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      textarea:focus-visible,
+      [tabindex]:focus-visible {
+        outline: 3px solid rgba(37, 99, 235, 0.22);
+        outline-offset: 2px;
+      }
+
+      /* ============ PRINT ============ */
+      @media print {
+        @page {
+          size: 58mm auto;
+          margin: 0;
+        }
+        html,
+        body {
+          background: #fff !important;
+          color: #000 !important;
+        }
+        body > *:not(#receiptContainer) {
+          display: none !important;
+        }
+        #receiptContainer {
+          display: block !important;
+          position: absolute !important;
+          left: 0 !important;
+          top: 0 !important;
+          width: 58mm !important;
+          background: #fff !important;
+          color: #000 !important;
+        }
+        #receiptContainer .r-paper {
+          border: 0 !important;
+          border-radius: 0 !important;
+          padding: 2mm 2.5mm 6mm !important;
+          margin: 0 !important;
+          width: 58mm !important;
+          max-height: none !important;
+          overflow: visible !important;
+          box-shadow: none !important;
+        }
+        #receiptContainer .r-item,
+        #receiptContainer .r-row {
+          page-break-inside: avoid;
+        }
+      }
+    </style>
   </head>
 
   <body>
-    <div class="container">
-      <!-- HEADER -->
+    <a href="#produk" class="skip-link">Langsung ke daftar produk</a>
 
-      <header class="header">
-        <div>
-          <h1>POS KASIR</h1>
-
-          <p id="status">Siap transaksi</p>
+    <!-- ============ TOPBAR ============ -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">☕</div>
+        <div class="brand-info">
+          <div class="brand-title">FYNCOFFEE</div>
+          <div class="brand-subtitle">POINT OF SALE</div>
         </div>
-
-        <button onclick="bukaCustomer()" class="btn customer-btn">
-          DISPLAY PEMBELI
-        </button>
-      </header>
-
-      <!-- DAFTAR PRODUK -->
-
-      <section class="produk-section">
-        <h2>Daftar Produk</h2>
-
-        <div id="produk">Memuat produk...</div>
-      </section>
-
-      <!-- KERANJANG -->
-
-      <section class="cart-section">
-        <h2>Keranjang Belanja</h2>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Produk</th>
-
-              <th>Harga</th>
-
-              <th>Qty</th>
-
-              <th>Subtotal</th>
-            </tr>
-          </thead>
-
-          <tbody id="keranjang"></tbody>
-        </table>
-      </section>
-
-      <!-- TOTAL -->
-
-      <div class="total-box">
-        <h2>
-          TOTAL : Rp
-
-          <span id="total"> 0 </span>
-        </h2>
       </div>
 
-      <!-- BUTTON ACTION -->
+      <div class="topbar-right">
+        <div class="clock" id="clock" aria-label="Waktu">00:00:00</div>
 
-      <div class="button-area">
-        <button onclick="bayar()" class="btn bayar">BAYAR QRIS</button>
-
-        <button onclick="lunas()" class="btn lunas">SUDAH DIBAYAR</button>
-
-        <button onclick="cetakStruk()" class="btn cetak">
-          CETAK STRUK 80MM
+        <button
+          type="button"
+          class="top-icon-btn"
+          id="btnSoundToggle"
+          onclick="toggleSound()"
+          title="Notifikasi suara"
+          aria-label="Toggle notifikasi suara"
+        >
+          🔊
         </button>
 
-        <button onclick="downloadStruk()" class="btn download">
-          DOWNLOAD PDF
+        <button
+          type="button"
+          class="top-icon-btn"
+          id="btnFullscreen"
+          onclick="togglePOSFullscreen()"
+          title="Fullscreen"
+          aria-label="Toggle fullscreen"
+        >
+          ⛶
         </button>
 
-        <button onclick="resetTransaksi()" class="btn reset">
-          TRANSAKSI BARU
+        <div class="connection" role="status" aria-live="polite">
+          <span
+            class="connection-dot"
+            id="connectionDot"
+            aria-hidden="true"
+          ></span>
+          <span id="connectionText">Online</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============ MAIN APP ============ -->
+    <main class="app">
+      <!-- PRODUCTS -->
+      <section class="products-section" aria-label="Daftar Produk">
+        <div class="toolbar">
+          <div class="search-wrapper">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input
+              type="text"
+              id="searchProduk"
+              class="search-input"
+              placeholder="Cari nama produk… (F1)"
+              autocomplete="off"
+              spellcheck="false"
+              aria-label="Cari produk"
+            />
+            <button
+              type="button"
+              id="clearSearch"
+              class="clear-search"
+              aria-label="Hapus pencarian"
+            >
+              ×
+            </button>
+          </div>
+
+          <button
+            type="button"
+            class="refresh-btn"
+            id="btnRefresh"
+            onclick="refreshProduk()"
+            aria-label="Muat ulang daftar produk"
+          >
+            <span id="refreshIcon">↻</span>
+            <span>Refresh</span>
+          </button>
+        </div>
+
+        <div
+          class="category-wrapper"
+          id="kategoriProduk"
+          role="tablist"
+          aria-label="Kategori produk"
+        ></div>
+
+        <div class="section-heading">
+          <h2>Menu Produk</h2>
+          <span id="produkInfo">Memuat…</span>
+        </div>
+
+        <div
+          class="product-grid"
+          id="produk"
+          role="list"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <div class="skeleton" aria-hidden="true">
+            <span style="width: 40%"></span><span style="width: 80%"></span
+            ><span style="width: 55%"></span>
+          </div>
+          <div class="skeleton" aria-hidden="true">
+            <span style="width: 40%"></span><span style="width: 80%"></span
+            ><span style="width: 55%"></span>
+          </div>
+          <div class="skeleton" aria-hidden="true">
+            <span style="width: 40%"></span><span style="width: 80%"></span
+            ><span style="width: 55%"></span>
+          </div>
+          <div class="skeleton" aria-hidden="true">
+            <span style="width: 40%"></span><span style="width: 80%"></span
+            ><span style="width: 55%"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- CART -->
+      <aside
+        class="cart-section"
+        id="cartSection"
+        aria-label="Keranjang pesanan"
+      >
+        <div class="cart-header">
+          <div class="cart-title">Pesanan</div>
+          <div style="display: flex; align-items: center; gap: 10px">
+            <div
+              class="cart-count"
+              id="cartBadge"
+              aria-live="polite"
+              aria-label="Jumlah item"
+            >
+              0
+            </div>
+            <button
+              type="button"
+              class="cart-close"
+              onclick="closeMobileCart()"
+              aria-label="Tutup keranjang"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <!-- ORDER META: Tipe Pesanan + Customer + Note -->
+        <div class="order-meta">
+          <div>
+            <div class="order-type-label">Tipe Pesanan</div>
+            <div class="order-type-group" id="orderTypeGroup">
+              <button
+                type="button"
+                class="order-type-btn active"
+                data-order-type="dine-in"
+              >
+                <span class="icon">🍽️</span>
+                <span>Dine In</span>
+              </button>
+              <button
+                type="button"
+                class="order-type-btn"
+                data-order-type="take-away"
+              >
+                <span class="icon">🥡</span>
+                <span>Take Away</span>
+              </button>
+              <button
+                type="button"
+                class="order-type-btn"
+                data-order-type="delivery"
+              >
+                <span class="icon">🛵</span>
+                <span>Delivery</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="customer-row">
+            <input
+              type="text"
+              id="customerNameInput"
+              class="customer-input"
+              placeholder="Nama pelanggan (opsional)"
+              autocomplete="off"
+              spellcheck="false"
+              maxlength="40"
+            />
+          </div>
+
+          <div class="customer-row">
+            <input
+              type="text"
+              id="orderNoteInput"
+              class="note-input"
+              placeholder="Catatan pesanan (opsional)"
+              autocomplete="off"
+              maxlength="80"
+            />
+          </div>
+        </div>
+
+        <div class="cart-content">
+          <div class="cart-empty" id="cartEmpty">
+            <div>
+              <div class="cart-empty-icon" aria-hidden="true">🛒</div>
+              <h3>Keranjang kosong</h3>
+              <p>Pilih produk untuk membuat pesanan.</p>
+            </div>
+          </div>
+          <div id="keranjang" aria-live="polite"></div>
+        </div>
+
+        <div class="cart-footer">
+          <div class="summary-row">
+            <span>Jumlah Item</span>
+            <strong id="totalItem">0 item</strong>
+          </div>
+          <div class="summary-row total">
+            <span>Total</span>
+            <strong id="total">Rp 0</strong>
+          </div>
+
+          <div class="payment-title">Metode Pembayaran</div>
+
+          <div class="payment-grid">
+            <button
+              type="button"
+              class="payment-btn cash"
+              id="btnCash"
+              onclick="bukaCashModal()"
+              aria-label="Bayar tunai (F2)"
+            >
+              💵 CASH
+            </button>
+            <button
+              type="button"
+              class="payment-btn qris"
+              id="btnQris"
+              onclick="bayarQRIS()"
+              aria-label="Bayar QRIS (F3)"
+            >
+              ▣ QRIS
+            </button>
+          </div>
+
+          <div class="secondary-actions">
+            <button
+              type="button"
+              class="secondary-btn"
+              onclick="resetTransaksi()"
+              aria-label="Kosongkan keranjang"
+            >
+              🗑 Kosongkan
+            </button>
+            <button
+              type="button"
+              class="secondary-btn"
+              onclick="bukaCustomerDisplay()"
+              aria-label="Buka customer display"
+            >
+              🖥 Display
+            </button>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- BACKDROP + MOBILE BUTTON -->
+    <div
+      class="mobile-cart-backdrop"
+      id="mobileCartBackdrop"
+      onclick="toggleMobileCart()"
+      aria-hidden="true"
+    ></div>
+
+    <button
+      type="button"
+      class="mobile-cart-button"
+      id="mobileCartButton"
+      onclick="toggleMobileCart()"
+      aria-label="Buka keranjang"
+    >
+      🛒
+      <span class="mobile-cart-badge" id="mobileCartBadge">0</span>
+    </button>
+
+    <!-- CASH MODAL -->
+    <div
+      class="modal"
+      id="cashModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cashModalTitle"
+    >
+      <div class="modal-box">
+        <div class="modal-header">
+          <h2 id="cashModalTitle">Pembayaran Cash</h2>
+          <button
+            type="button"
+            class="close-btn"
+            onclick="tutupCashModal()"
+            aria-label="Tutup"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="cash-total-box">
+          <span>Total yang harus dibayar</span>
+          <strong id="cashTotal">Rp 0</strong>
+        </div>
+
+        <input
+          type="number"
+          inputmode="numeric"
+          id="uangDiterima"
+          class="cash-input"
+          placeholder="Masukkan uang"
+          min="0"
+          step="500"
+          autocomplete="off"
+          aria-label="Uang diterima"
+        />
+
+        <div class="cash-error" id="cashInputError" role="alert"></div>
+
+        <div class="quick-cash">
+          <button type="button" class="quick-btn" onclick="quickCash('pas')">
+            Uang Pas
+          </button>
+          <button type="button" class="quick-btn" onclick="quickCash(20000)">
+            20K
+          </button>
+          <button type="button" class="quick-btn" onclick="quickCash(50000)">
+            50K
+          </button>
+          <button type="button" class="quick-btn" onclick="quickCash(100000)">
+            100K
+          </button>
+          <button type="button" class="quick-btn" onclick="quickCash(200000)">
+            200K
+          </button>
+          <button type="button" class="quick-btn" onclick="quickCash(500000)">
+            500K
+          </button>
+        </div>
+
+        <div class="change-box" id="changeBox">
+          <span>Kembalian</span>
+          <strong id="kembalian">Rp 0</strong>
+        </div>
+
+        <button
+          type="button"
+          class="confirm-cash-btn"
+          id="btnKonfirmasiCash"
+          onclick="konfirmasiCash()"
+        >
+          ✓ Konfirmasi Pembayaran
         </button>
       </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- QRIS MODAL -->
+    <div
+      class="modal"
+      id="qrisModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="qrisModalTitle"
+    >
+      <div class="modal-box qris-box">
+        <div class="modal-header">
+          <h2 id="qrisModalTitle">Pembayaran QRIS</h2>
+          <button
+            type="button"
+            class="close-btn"
+            onclick="tutupQrisModal()"
+            aria-label="Tutup"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="qris-image-frame">
+          <img
+            src="Qris Fyn.jpg"
+            alt="QRIS FYNCOFFEE"
+            id="qrisImage"
+            onerror="
+              this.style.display = 'none';
+              this.nextElementSibling.style.display = 'flex';
+            "
+          />
+          <div class="qris-fallback">
+            <div class="qr-icon">▣</div>
+            <div>QR Code belum tersedia</div>
+            <div style="font-size: 10px; color: #999">
+              Letakkan <b>Qris Fyn.jpg</b> di folder yang sama
+            </div>
+          </div>
+        </div>
+
+        <div class="qris-amount" id="qrisTotal">Rp 0</div>
+
+        <div class="qris-hint">
+          Minta pelanggan memindai kode QR di atas, lalu tekan "Tandai Lunas"
+          setelah pembayaran berhasil.
+        </div>
+
+        <div class="qris-actions">
+          <button type="button" class="btn-ghost" onclick="tutupQrisModal()">
+            Batal
+          </button>
+          <button type="button" class="btn-dark" onclick="konfirmasiQRIS()">
+            ✓ Tandai Lunas
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECEIPT MODAL -->
+    <div
+      class="modal"
+      id="receiptModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="receiptModalTitle"
+    >
+      <div class="modal-box receipt-modal-box">
+        <div class="modal-header">
+          <h2 id="receiptModalTitle">Transaksi Berhasil</h2>
+          <button
+            type="button"
+            class="close-btn"
+            onclick="tutupStruk()"
+            aria-label="Tutup"
+          >
+            ×
+          </button>
+        </div>
+
+        <div class="success-badge" role="status">
+          <span class="check" aria-hidden="true">✓</span>
+          <span id="receiptSuccessText">Pembayaran diterima</span>
+        </div>
+
+        <div id="receiptPreview"></div>
+
+        <div class="receipt-actions">
+          <button
+            type="button"
+            class="btn-ghost"
+            onclick="cetakStrukTerakhir()"
+          >
+            🖨 Cetak
+          </button>
+          <button
+            type="button"
+            class="btn-new-trx"
+            onclick="mulaiTransaksiBaru()"
+          >
+            ➕ Transaksi Baru
+          </button>
+        </div>
+
+        <div class="receipt-actions secondary-row">
+          <button type="button" class="btn-ghost" onclick="tutupStruk()">
+            Selesai
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECEIPT CONTAINER -->
+    <div
+      id="receiptContainer"
+      class="receipt-container"
+      aria-hidden="true"
+    ></div>
+
+    <!-- TOAST -->
+    <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" aria-hidden="true">
+      <div class="loading-spinner"></div>
+      <div class="loading-text" id="loadingText">Memproses transaksi...</div>
+    </div>
+
+    <noscript>
+      <div
+        style="
+          position: fixed;
+          inset: 0;
+          z-index: 99999;
+          background: #171717;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 30px;
+          text-align: center;
+          font-family: Inter, system-ui, sans-serif;
+        "
+      >
+        <div>
+          <div style="font-size: 60px; margin-bottom: 20px">☕</div>
+          <h2 style="font-size: 22px; margin-bottom: 10px">
+            JavaScript Diperlukan
+          </h2>
+          <p style="color: #a3a3a3; font-size: 14px; line-height: 1.6">
+            Aplikasi FYNCOFFEE POS membutuhkan JavaScript.<br />Silakan aktifkan
+            JavaScript di browser Anda.
+          </p>
+        </div>
+      </div>
+    </noscript>
+
+    <!-- ============ INLINE HELPER SCRIPT ============ -->
+    <script>
+      /* =====================================================
+         MOBILE CART
+         ===================================================== */
+      function toggleMobileCart() {
+        const cart = document.getElementById("cartSection");
+        const backdrop = document.getElementById("mobileCartBackdrop");
+        if (!cart) return;
+
+        const opened = cart.classList.toggle("mobile-open");
+        if (backdrop) {
+          backdrop.classList.toggle("active", opened);
+          backdrop.setAttribute("aria-hidden", String(!opened));
+        }
+
+        const isMobile = window.innerWidth <= 900;
+        document.body.style.overflow = opened && isMobile ? "hidden" : "";
+
+        if (opened && isMobile) {
+          const closeBtn = cart.querySelector(".cart-close");
+          if (closeBtn) closeBtn.focus();
+        }
+      }
+
+      function closeMobileCart() {
+        const cart = document.getElementById("cartSection");
+        const backdrop = document.getElementById("mobileCartBackdrop");
+        if (cart) cart.classList.remove("mobile-open");
+        if (backdrop) {
+          backdrop.classList.remove("active");
+          backdrop.setAttribute("aria-hidden", "true");
+        }
+        document.body.style.overflow = "";
+      }
+
+      /* =====================================================
+         AUTO CLOSE CART AFTER PRODUCT CLICK (mobile)
+         ===================================================== */
+      document.addEventListener("click", function (event) {
+        if (window.innerWidth > 900) return;
+        const product = event.target.closest(".product-card");
+        if (product && !product.classList.contains("out-of-stock")) {
+          setTimeout(closeMobileCart, 150);
+        }
+      });
+
+      /* =====================================================
+         ESC KEY
+         ===================================================== */
+      document.addEventListener("keydown", function (event) {
+        if (event.key !== "Escape") return;
+        closeMobileCart();
+        if (typeof tutupCashModal === "function") tutupCashModal();
+        if (typeof tutupQrisModal === "function") tutupQrisModal();
+        if (typeof tutupStruk === "function") tutupStruk();
+      });
+
+      /* =====================================================
+         RESIZE
+         ===================================================== */
+      window.addEventListener("resize", function () {
+        if (window.innerWidth > 900) closeMobileCart();
+      });
+
+      /* =====================================================
+         BODY SCROLL LOCK SAAT MODAL TERBUKA
+         ===================================================== */
+      (function setupModalScrollLock() {
+        if (!("MutationObserver" in window)) return;
+        const modals = ["cashModal", "qrisModal", "receiptModal"]
+          .map((id) => document.getElementById(id))
+          .filter(Boolean);
+        if (!modals.length) return;
+
+        function sync() {
+          const anyActive = modals.some((m) => m.classList.contains("active"));
+          document.body.classList.toggle("modal-open", anyActive);
+        }
+
+        const observer = new MutationObserver(sync);
+        modals.forEach((m) => {
+          observer.observe(m, { attributes: true, attributeFilter: ["class"] });
+        });
+        sync();
+      })();
+
+      /* =====================================================
+         ORDER TYPE TOGGLE (self-contained)
+         ===================================================== */
+      function setOrderType(type) {
+        const group = document.getElementById("orderTypeGroup");
+        if (!group) return;
+
+        group.querySelectorAll(".order-type-btn").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.orderType === type);
+        });
+
+        try {
+          localStorage.setItem("fyncoffee_order_type", type);
+        } catch (e) {}
+      }
+
+      (function initOrderType() {
+        const group = document.getElementById("orderTypeGroup");
+        if (!group) return;
+
+        group.addEventListener("click", (e) => {
+          const btn = e.target.closest(".order-type-btn");
+          if (!btn) return;
+          setOrderType(btn.dataset.orderType);
+        });
+
+        try {
+          const saved =
+            localStorage.getItem("fyncoffee_order_type") || "dine-in";
+          setOrderType(saved);
+        } catch (e) {}
+      })();
+
+      /* =====================================================
+         CUSTOMER NAME & ORDER NOTE (auto-save)
+         ===================================================== */
+      (function initCustomerNote() {
+        const nameInput = document.getElementById("customerNameInput");
+        const noteInput = document.getElementById("orderNoteInput");
+
+        if (nameInput) {
+          try {
+            nameInput.value =
+              localStorage.getItem("fyncoffee_customer_name") || "";
+          } catch (e) {}
+
+          nameInput.addEventListener("input", () => {
+            try {
+              localStorage.setItem("fyncoffee_customer_name", nameInput.value);
+            } catch (e) {}
+          });
+        }
+
+        if (noteInput) {
+          try {
+            noteInput.value =
+              localStorage.getItem("fyncoffee_order_note") || "";
+          } catch (e) {}
+
+          noteInput.addEventListener("input", () => {
+            try {
+              localStorage.setItem("fyncoffee_order_note", noteInput.value);
+            } catch (e) {}
+          });
+        }
+      })();
+
+      /* =====================================================
+         SOUND TOGGLE
+         ===================================================== */
+      function toggleSound() {
+        const btn = document.getElementById("btnSoundToggle");
+        if (!btn) return;
+
+        const isActive = btn.classList.toggle("active");
+        btn.textContent = isActive ? "🔊" : "🔇";
+
+        try {
+          localStorage.setItem("fyncoffee_sound", isActive ? "1" : "0");
+        } catch (e) {}
+      }
+
+      (function initSound() {
+        const btn = document.getElementById("btnSoundToggle");
+        if (!btn) return;
+
+        try {
+          const saved = localStorage.getItem("fyncoffee_sound");
+          const isActive = saved !== "0";
+          btn.classList.toggle("active", isActive);
+          btn.textContent = isActive ? "🔊" : "🔇";
+        } catch (e) {
+          btn.classList.add("active");
+        }
+      })();
+
+      /* =====================================================
+         FULLSCREEN
+         ===================================================== */
+      async function togglePOSFullscreen() {
+        try {
+          if (document.fullscreenElement) {
+            await document.exitFullscreen();
+          } else if (document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+          }
+        } catch (err) {
+          console.log("Fullscreen tidak tersedia:", err);
+        }
+      }
+
+      /* =====================================================
+         REFRESH PRODUK (dengan animasi spin)
+         ===================================================== */
+      function refreshProduk() {
+        const btn = document.getElementById("btnRefresh");
+        const icon = document.getElementById("refreshIcon");
+
+        if (icon) {
+          icon.classList.remove("spinning");
+          void icon.offsetWidth;
+          icon.classList.add("spinning");
+        }
+
+        if (btn) btn.disabled = true;
+
+        if (typeof ambilProduk === "function") {
+          Promise.resolve(ambilProduk()).finally(() => {
+            if (btn) btn.disabled = false;
+          });
+        } else {
+          if (btn) btn.disabled = false;
+        }
+      }
+
+      /* =====================================================
+         TRANSAKSI BARU (dari receipt modal)
+         ===================================================== */
+      function mulaiTransaksiBaru() {
+        /* Tutup modal struk */
+        if (typeof tutupStruk === "function") tutupStruk();
+
+        /* Reset form customer & note */
+        const nameInput = document.getElementById("customerNameInput");
+        const noteInput = document.getElementById("orderNoteInput");
+        if (nameInput) nameInput.value = "";
+        if (noteInput) noteInput.value = "";
+
+        try {
+          localStorage.removeItem("fyncoffee_customer_name");
+          localStorage.removeItem("fyncoffee_order_note");
+        } catch (e) {}
+
+        /* Fokus ke search produk */
+        setTimeout(() => {
+          const search = document.getElementById("searchProduk");
+          if (search) {
+            search.focus();
+            search.select();
+          }
+        }, 200);
+
+        /* Toast konfirmasi */
+        if (typeof toast === "function") {
+          toast("Siap untuk transaksi baru ✨", "success");
+        }
+      }
+
+      /* =====================================================
+         FALLBACK — JIKA Script.js GAGAL DIMUAT
+         ===================================================== */
+      window.addEventListener("load", function () {
+        setTimeout(function () {
+          const hasAmbilProduk = typeof window.ambilProduk === "function";
+          if (!hasAmbilProduk) {
+            console.warn("[FYNCOFFEE] Script.js tidak terdeteksi.");
+            const produk = document.getElementById("produk");
+            if (produk) {
+              produk.innerHTML = `
+                <div class="empty-state">
+                  <div class="empty-icon">⚠️</div>
+                  <h3>Gagal Memuat Aplikasi</h3>
+                  <p>File <b>Script.js</b> tidak ditemukan atau gagal dimuat.<br/>
+                  Pastikan file <b>Script.js</b> berada di folder yang sama.</p>
+                </div>
+              `;
+            }
+          }
+        }, 800);
+      });
+
+      /* =====================================================
+         LOG
+         ===================================================== */
+      console.log(
+        "%c FYNCOFFEE POS ",
+        "background:#111;color:#fff;padding:8px 12px;border-radius:6px;font-weight:900;font-size:13px;",
+      );
+      console.log(
+        "%c Index V4 FINAL ",
+        "background:#166534;color:#fff;padding:3px 8px;border-radius:4px;font-size:11px;",
+      );
+    </script>
+
+    <!-- ============ MAIN SCRIPT ============ -->
+    <script src="Script.js" defer></script>
   </body>
 </html>
