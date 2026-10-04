@@ -3,302 +3,1988 @@
   <head>
     <meta charset="UTF-8" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
 
-    <title>Customer Display QRIS</title>
+    <meta name="theme-color" content="#080808" />
 
-    <link rel="stylesheet" href="style.css" />
+    <title>FYNCOFFEE • Customer Display</title>
 
     <style>
-      body {
-        margin: 0;
+      /* =====================================================
+         FYNCOFFEE CUSTOMER DISPLAY V3
+         RESPONSIVE • ITEM LIST • QRIS • LIVE STATUS
+         ===================================================== */
 
-        background: #111;
+      :root {
+        --bg: #080808;
+        --bg-soft: #111111;
 
-        font-family: Arial, sans-serif;
+        --text: #ffffff;
+        --text-soft: rgba(255, 255, 255, 0.68);
+        --text-muted: rgba(255, 255, 255, 0.42);
+
+        --green: #10b981;
+        --green-dark: #047857;
+        --green-soft: rgba(16, 185, 129, 0.12);
+
+        --gold: #f59e0b;
+        --red: #ef4444;
+
+        --border: rgba(255, 255, 255, 0.09);
+        --border-soft: rgba(255, 255, 255, 0.05);
+
+        --radius-md: 16px;
+        --radius-lg: 24px;
+        --radius-xl: 32px;
+
+        --shadow-lg: 0 25px 80px rgba(0, 0, 0, 0.45);
+
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+        --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
       }
 
+      /* =====================================================
+         RESET
+         ===================================================== */
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        width: 100%;
+        min-height: 100%;
+        background: var(--bg);
+        scroll-behavior: smooth;
+      }
+
+      body {
+        width: 100%;
+        min-height: 100vh;
+
+        margin: 0;
+
+        background:
+          radial-gradient(
+            circle at 50% 15%,
+            rgba(255, 255, 255, 0.045),
+            transparent 35%
+          ),
+          radial-gradient(
+            circle at 50% 100%,
+            rgba(16, 185, 129, 0.06),
+            transparent 40%
+          ),
+          var(--bg);
+
+        color: var(--text);
+
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Arial,
+          sans-serif;
+
+        -webkit-font-smoothing: antialiased;
+
+        overflow: hidden;
+
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button,
+      img {
+        -webkit-user-drag: none;
+      }
+
+      /* =====================================================
+         CUSTOMER CONTAINER
+         ===================================================== */
+
       .customer {
-        height: 100vh;
+        width: 100%;
+        min-height: 100vh;
+        min-height: 100svh;
 
         display: flex;
-
         flex-direction: column;
-
+        align-items: center;
         justify-content: center;
 
-        align-items: center;
+        padding: calc(80px + var(--safe-top)) 24px
+          calc(60px + var(--safe-bottom));
 
         text-align: center;
 
-        color: white;
+        overflow: hidden;
 
-        cursor: pointer;
+        position: relative;
       }
 
-      #judul {
-        font-size: 45px;
+      /* =====================================================
+         TOP BRAND
+         ===================================================== */
 
-        margin-bottom: 20px;
+      .brand {
+        position: absolute;
+
+        top: calc(20px + var(--safe-top));
+        left: 24px;
+
+        display: flex;
+        align-items: center;
+        gap: 9px;
+
+        opacity: 0.9;
+
+        z-index: 5;
       }
 
-      .total {
-        font-size: 80px;
+      .brand-logo {
+        width: 34px;
+        height: 34px;
 
-        font-weight: bold;
+        display: grid;
+        place-items: center;
 
-        margin: 20px;
+        background: #ffffff;
+        color: #111111;
+
+        border-radius: 10px;
+
+        font-size: 17px;
+        font-weight: 900;
       }
 
-      .qris {
-        width: 320px;
+      .brand-name {
+        font-size: 13px;
+        font-weight: 850;
 
-        height: 320px;
-
-        object-fit: contain;
-
-        background: white;
-
-        padding: 15px;
-
-        border-radius: 20px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
       }
 
-      #instruksi {
-        font-size: 35px;
+      /* =====================================================
+         TOP-RIGHT BAR
+         ===================================================== */
 
-        margin-top: 30px;
+      .top-right {
+        position: absolute;
+
+        top: calc(20px + var(--safe-top));
+        right: 24px;
+
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        z-index: 5;
       }
 
-      #status {
-        font-size: 25px;
+      .clock {
+        font-size: 13px;
+        font-weight: 700;
 
-        opacity: 0.8;
+        color: var(--text-soft);
+
+        letter-spacing: 0.5px;
+
+        font-variant-numeric: tabular-nums;
       }
 
-      /* ANIMASI */
+      .connection-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
 
-      .waiting {
-        animation: pulse 1.5s infinite;
+        padding: 5px 10px;
+
+        background: rgba(255, 255, 255, 0.06);
+
+        border: 1px solid var(--border);
+        border-radius: 999px;
+
+        font-size: 10px;
+        font-weight: 750;
+
+        color: var(--text-soft);
+
+        letter-spacing: 0.3px;
       }
 
-      @keyframes pulse {
-        0% {
-          opacity: 1;
-        }
+      .conn-dot {
+        width: 7px;
+        height: 7px;
 
-        50% {
-          opacity: 0.5;
-        }
+        border-radius: 50%;
 
+        background: var(--green);
+
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+
+        transition:
+          background 0.2s var(--ease),
+          box-shadow 0.2s var(--ease);
+      }
+
+      .conn-dot.offline {
+        background: var(--red);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+      }
+
+      .conn-dot.loading {
+        background: var(--gold);
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+
+        animation: pulseDot 1.4s ease-in-out infinite;
+      }
+
+      @keyframes pulseDot {
+        0%,
         100% {
           opacity: 1;
         }
+        50% {
+          opacity: 0.4;
+        }
       }
 
-      .success {
-        animation: zoom 0.5s;
+      /* =====================================================
+         CONTENT GRID — 2 KOLOM
+         ===================================================== */
+
+      .content {
+        width: 100%;
+        max-width: 1300px;
+
+        display: grid;
+
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+
+        gap: clamp(24px, 4vw, 60px);
+
+        align-items: center;
+
+        animation: contentIn 0.5s var(--ease);
+      }
+
+      @keyframes contentIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* =====================================================
+         LEFT PANEL — TITLE, TOTAL, ITEMS
+         ===================================================== */
+
+      .left-panel {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(10px, 1.5vh, 16px);
+
+        text-align: left;
+
+        min-width: 0;
+      }
+
+      #judul {
+        margin: 0;
+
+        color: #ffffff;
+
+        font-size: clamp(16px, 2.2vw, 28px);
+        font-weight: 800;
+
+        line-height: 1.1;
+
+        letter-spacing: 0.5px;
+
+        text-transform: uppercase;
+
+        opacity: 0.72;
+
+        transition: opacity 0.3s var(--ease);
+      }
+
+      .total {
+        color: #ffffff;
+
+        font-size: clamp(38px, 6vw, 72px);
+        font-weight: 900;
+
+        line-height: 1;
+
+        letter-spacing: clamp(-2px, -0.15vw, -1px);
+
+        text-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+
+        transition: transform 0.3s var(--ease);
+      }
+
+      .total span {
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .total.changed {
+        animation: totalPop 0.45s var(--ease);
+      }
+
+      @keyframes totalPop {
+        0% {
+          transform: scale(1);
+        }
+        40% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      /* Sub info */
+      .sub-info {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+
+        align-self: flex-start;
+
+        padding: 6px 14px;
+
+        background: rgba(255, 255, 255, 0.05);
+
+        border: 1px solid var(--border);
+        border-radius: 999px;
+
+        font-size: clamp(11px, 1.2vw, 14px);
+        font-weight: 650;
+
+        color: var(--text-soft);
+
+        letter-spacing: 0.3px;
+      }
+
+      .sub-info.hidden {
+        display: none;
+      }
+
+      /* =====================================================
+         ITEMS PANEL
+         ===================================================== */
+
+      .items-panel {
+        display: none;
+
+        flex-direction: column;
+
+        margin-top: 6px;
+
+        padding: 16px 18px;
+
+        background: rgba(255, 255, 255, 0.035);
+
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+
+        max-height: 44vh;
+
+        overflow-y: auto;
+
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+      }
+
+      .items-panel.visible {
+        display: flex;
+      }
+
+      .items-panel::-webkit-scrollbar {
+        width: 5px;
+      }
+
+      .items-panel::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+      }
+
+      .items-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 10px;
+
+        margin-bottom: 12px;
+
+        padding-bottom: 10px;
+
+        border-bottom: 1px dashed var(--border);
+
+        font-size: clamp(10px, 1vw, 11px);
+        font-weight: 850;
+
+        color: var(--text-muted);
+
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+      }
+
+      .items-header-count {
+        color: var(--green);
+
+        font-weight: 900;
+
+        letter-spacing: 0.5px;
+      }
+
+      .items-list {
+        display: flex;
+        flex-direction: column;
+
+        gap: 10px;
+      }
+
+      .item-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+
+        gap: 12px;
+
+        padding-bottom: 10px;
+
+        border-bottom: 1px solid var(--border-soft);
+
+        animation: itemIn 0.22s var(--ease);
+      }
+
+      @keyframes itemIn {
+        from {
+          opacity: 0;
+          transform: translateX(-6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .item-row:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .item-info {
+        min-width: 0;
+
+        display: flex;
+        flex-direction: column;
+
+        gap: 3px;
+
+        text-align: left;
+      }
+
+      .item-name {
+        font-size: clamp(13px, 1.4vw, 17px);
+        font-weight: 750;
+
+        color: #ffffff;
+
+        line-height: 1.3;
+
+        word-break: break-word;
+      }
+
+      .item-qty {
+        font-size: clamp(11px, 1.1vw, 13px);
+        font-weight: 600;
+
+        color: var(--text-soft);
+
+        font-variant-numeric: tabular-nums;
+
+        letter-spacing: 0.2px;
+      }
+
+      .item-price {
+        font-size: clamp(13px, 1.4vw, 17px);
+        font-weight: 850;
+
+        color: #ffffff;
+
+        text-align: right;
+
+        white-space: nowrap;
+
+        font-variant-numeric: tabular-nums;
+
+        align-self: center;
+      }
+
+      /* =====================================================
+         RIGHT PANEL — QRIS
+         ===================================================== */
+
+      .right-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        gap: clamp(16px, 2vh, 24px);
+
+        min-width: 0;
+      }
+
+      .qris-wrapper {
+        position: relative;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: clamp(8px, 1vw, 14px);
+
+        background: #ffffff;
+
+        border-radius: var(--radius-xl);
+
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.08),
+          0 20px 60px rgba(0, 0, 0, 0.45);
+
+        transition:
+          transform 0.25s var(--ease),
+          box-shadow 0.25s var(--ease);
+      }
+
+      .qris {
+        width: min(40vw, 320px);
+        height: min(40vw, 320px);
+
+        max-width: 320px;
+        max-height: 320px;
+
+        object-fit: contain;
+
+        display: block;
+
+        background: #ffffff;
+
+        border-radius: 15px;
+      }
+
+      .qris-fallback {
+        width: min(40vw, 320px);
+        height: min(40vw, 320px);
+
+        max-width: 320px;
+        max-height: 320px;
+
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        gap: 8px;
+
+        background: #f5f5f5;
+        color: #111;
+
+        border-radius: 15px;
+
+        font-size: 12px;
+        font-weight: 750;
+        text-align: center;
+
+        padding: 20px;
+      }
+
+      .qris-fallback .qr-icon {
+        font-size: 60px;
+        line-height: 1;
+      }
+
+      .scan-badge {
+        position: absolute;
+
+        left: 50%;
+        bottom: -14px;
+
+        transform: translateX(-50%);
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        gap: 7px;
+
+        min-width: 125px;
+
+        padding: 7px 13px;
+
+        background: #ffffff;
+        color: #111111;
+
+        border-radius: 999px;
+
+        font-size: 10px;
+        font-weight: 850;
+
+        letter-spacing: 0.5px;
+
+        white-space: nowrap;
+
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      }
+
+      .scan-dot {
+        width: 7px;
+        height: 7px;
+
+        border-radius: 50%;
+
+        background: var(--green);
+
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+
+        animation: scanPulse 1.5s infinite;
+      }
+
+      @keyframes scanPulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.45;
+          transform: scale(0.75);
+        }
+      }
+
+      #instruksi {
+        margin: 0;
+
+        color: #ffffff;
+
+        font-size: clamp(14px, 1.8vw, 24px);
+        font-weight: 800;
+
+        line-height: 1.2;
+      }
+
+      #status {
+        margin: 0;
+
+        color: var(--text-soft);
+
+        font-size: clamp(11px, 1.4vw, 18px);
+        font-weight: 600;
+
+        line-height: 1.4;
+      }
+
+      /* Waiting animation */
+      .waiting #judul,
+      .waiting #instruksi,
+      .waiting #status {
+        animation: textPulse 2.5s ease-in-out infinite;
+      }
+
+      @keyframes textPulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.72;
+        }
+      }
+
+      /* =====================================================
+         SUCCESS SCREEN
+         ===================================================== */
+
+      .success-screen {
+        width: 100%;
+        max-width: 700px;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        text-align: center;
+
+        animation: successIn 0.55s var(--ease);
+      }
+
+      .success-icon {
+        width: clamp(80px, 14vw, 125px);
+        height: clamp(80px, 14vw, 125px);
+
+        display: grid;
+        place-items: center;
+
+        margin-bottom: 25px;
+
+        background: var(--green-soft);
+
+        border: 2px solid rgba(16, 185, 129, 0.35);
+
+        color: var(--green);
+
+        border-radius: 50%;
+
+        font-size: clamp(40px, 7vw, 65px);
+        font-weight: 900;
+
+        box-shadow:
+          0 0 0 12px rgba(16, 185, 129, 0.04),
+          0 20px 60px rgba(0, 0, 0, 0.35);
+
+        animation: zoom 0.5s var(--ease);
+      }
+
+      .success-title {
+        margin: 0;
+
+        font-size: clamp(28px, 6vw, 60px);
+        font-weight: 900;
+
+        line-height: 1.05;
+        letter-spacing: -1px;
+
+        color: #ffffff;
+      }
+
+      .success-subtitle {
+        margin: 14px 0 5px;
+
+        color: #ffffff;
+
+        font-size: clamp(18px, 3vw, 32px);
+        font-weight: 750;
+      }
+
+      .success-description {
+        margin: 0;
+
+        color: var(--text-soft);
+
+        font-size: clamp(12px, 2vw, 20px);
       }
 
       @keyframes zoom {
         from {
-          transform: scale(0.5);
+          opacity: 0;
+          transform: scale(0.7);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes successIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px) scale(0.96);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      /* =====================================================
+         FULLSCREEN BUTTON
+         ===================================================== */
+
+      .fullscreen-btn {
+        position: absolute;
+
+        right: 16px;
+        bottom: calc(16px + var(--safe-bottom));
+
+        width: 40px;
+        height: 40px;
+
+        display: grid;
+        place-items: center;
+
+        background: rgba(255, 255, 255, 0.06);
+
+        border: 1px solid var(--border);
+        border-radius: 12px;
+
+        color: var(--text-soft);
+
+        font-size: 16px;
+
+        cursor: pointer;
+
+        transition:
+          background 0.15s var(--ease),
+          color 0.15s var(--ease),
+          transform 0.15s var(--ease);
+
+        z-index: 6;
+      }
+
+      .fullscreen-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text);
+      }
+
+      .fullscreen-btn:active {
+        transform: scale(0.92);
+      }
+
+      /* =====================================================
+         CONNECTION ERROR
+         ===================================================== */
+
+      .connection-error {
+        color: #fca5a5 !important;
+      }
+
+      /* =====================================================
+         EMPTY STATE (welcome screen)
+         ===================================================== */
+
+      .welcome {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+
+        text-align: center;
+
+        animation: contentIn 0.5s var(--ease);
+      }
+
+      .welcome .welcome-icon {
+        font-size: clamp(60px, 10vw, 100px);
+        line-height: 1;
+      }
+
+      .welcome h2 {
+        margin: 0;
+
+        font-size: clamp(22px, 4vw, 42px);
+        font-weight: 900;
+
+        letter-spacing: -0.5px;
+      }
+
+      .welcome p {
+        margin: 0;
+
+        color: var(--text-soft);
+
+        font-size: clamp(13px, 1.6vw, 20px);
+      }
+
+      /* =====================================================
+         RESPONSIVE — STACK DI LAYAR KECIL / PORTRAIT
+         ===================================================== */
+
+      @media (max-width: 1000px), (orientation: portrait) {
+        .content {
+          grid-template-columns: 1fr;
+          gap: 22px;
         }
 
-        to {
-          transform: scale(1);
+        .left-panel {
+          text-align: center;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .left-panel .sub-info {
+          align-self: center;
+        }
+
+        .items-panel {
+          max-height: 30vh;
+          text-align: left;
+          width: 100%;
+        }
+
+        .qris {
+          width: min(60vw, 260px);
+          height: min(60vw, 260px);
+          max-width: 260px;
+          max-height: 260px;
+        }
+
+        .qris-fallback {
+          width: min(60vw, 260px);
+          height: min(60vw, 260px);
+          max-width: 260px;
+          max-height: 260px;
+        }
+      }
+
+      /* =====================================================
+         LARGE SCREEN
+         ===================================================== */
+
+      @media (min-width: 1400px) {
+        .qris,
+        .qris-fallback {
+          width: 360px;
+          height: 360px;
+          max-width: 360px;
+          max-height: 360px;
+        }
+      }
+
+      /* =====================================================
+         MOBILE SMALL
+         ===================================================== */
+
+      @media (max-width: 480px) {
+        .customer {
+          padding-left: 14px;
+          padding-right: 14px;
+        }
+
+        .brand {
+          top: calc(13px + var(--safe-top));
+          left: 14px;
+        }
+
+        .brand-logo {
+          width: 29px;
+          height: 29px;
+          border-radius: 8px;
+          font-size: 14px;
+        }
+
+        .brand-name {
+          font-size: 11px;
+          letter-spacing: 1.2px;
+        }
+
+        .top-right {
+          top: calc(13px + var(--safe-top));
+          right: 14px;
+          gap: 8px;
+        }
+
+        .clock {
+          font-size: 11px;
+        }
+
+        .connection-pill {
+          padding: 4px 8px;
+          font-size: 9px;
+        }
+
+        #judul {
+          font-size: 14px;
+        }
+
+        .total {
+          font-size: 34px;
+        }
+
+        .items-panel {
+          padding: 12px 14px;
+          max-height: 26vh;
+        }
+
+        .qris {
+          width: min(55vw, 200px);
+          height: min(55vw, 200px);
+        }
+
+        .qris-fallback {
+          width: min(55vw, 200px);
+          height: min(55vw, 200px);
+        }
+
+        .scan-badge {
+          min-width: 110px;
+          padding: 6px 10px;
+          font-size: 9px;
+        }
+
+        #instruksi {
+          font-size: 13px;
+        }
+
+        #status {
+          font-size: 11px;
+        }
+
+        .fullscreen-btn {
+          width: 36px;
+          height: 36px;
+          font-size: 14px;
+        }
+      }
+
+      /* =====================================================
+         VERY SHORT SCREEN (landscape phone)
+         ===================================================== */
+
+      @media (max-height: 650px) and (orientation: landscape) {
+        .customer {
+          padding-top: 60px;
+          padding-bottom: 30px;
+        }
+
+        .brand {
+          display: none;
+        }
+
+        .total {
+          font-size: clamp(28px, 6vw, 48px);
+        }
+
+        .items-panel {
+          max-height: 45vh;
+        }
+
+        .qris {
+          width: min(32vh, 200px);
+          height: min(32vh, 200px);
+        }
+
+        .qris-fallback {
+          width: min(32vh, 200px);
+          height: min(32vh, 200px);
+        }
+      }
+
+      /* =====================================================
+         REDUCED MOTION
+         ===================================================== */
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
         }
       }
     </style>
   </head>
 
   <body>
-    <div class="customer waiting" onclick="fullscreen()">
-      <h1 id="judul">TOTAL PEMBAYARAN</h1>
-
-      <div class="total">
-        Rp
-
-        <span id="total"> 0 </span>
+    <div class="customer waiting" id="customerDisplay">
+      <!-- BRAND -->
+      <div class="brand">
+        <div class="brand-logo">☕</div>
+        <div class="brand-name">FYNCOFFEE</div>
       </div>
 
-      <img src="Qris Fyn.jpg" class="qris" />
+      <!-- TOP RIGHT -->
+      <div class="top-right">
+        <div class="clock" id="clock">--:--:--</div>
 
-      <h2 id="instruksi">Silahkan Scan QRIS</h2>
+        <div class="connection-pill">
+          <span class="conn-dot loading" id="connDot"></span>
+          <span id="connText">Menghubungkan…</span>
+        </div>
+      </div>
 
-      <p id="status">Menunggu transaksi...</p>
+      <!-- CONTENT (2 kolom) -->
+      <div class="content" id="contentArea">
+        <!-- LEFT: title, total, items -->
+        <div class="left-panel">
+          <h1 id="judul">TOTAL PEMBAYARAN</h1>
+
+          <div class="total">
+            Rp
+            <span id="total">0</span>
+          </div>
+
+          <div class="sub-info hidden" id="subInfo"></div>
+
+          <!-- ITEMS LIST -->
+          <div class="items-panel" id="itemsPanel">
+            <div class="items-header">
+              <span>DETAIL PESANAN</span>
+              <span class="items-header-count" id="itemsHeaderCount"
+                >0 item</span
+              >
+            </div>
+
+            <div class="items-list" id="itemsList"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: QRIS -->
+        <div class="right-panel">
+          <div class="qris-wrapper">
+            <img
+              src="Qris Fyn.jpg"
+              class="qris"
+              id="qrisImage"
+              alt="QRIS FYNCOFFEE"
+            />
+
+            <div class="qris-fallback" id="qrisFallback">
+              <div class="qr-icon">▣</div>
+              <div>QR Code belum tersedia</div>
+              <div style="font-size: 10px; color: #666">
+                Letakkan file <b>Qris Fyn.jpg</b> di folder yang sama
+              </div>
+            </div>
+
+            <div class="scan-badge">
+              <span class="scan-dot"></span>
+              SCAN UNTUK BAYAR
+            </div>
+          </div>
+
+          <h2 id="instruksi">Silahkan Scan QRIS</h2>
+
+          <p id="status">Menunggu transaksi...</p>
+        </div>
+      </div>
+
+      <!-- FULLSCREEN BUTTON -->
+      <button
+        type="button"
+        class="fullscreen-btn"
+        id="fullscreenBtn"
+        onclick="toggleFullscreen()"
+        aria-label="Toggle fullscreen"
+        title="Toggle fullscreen (F / Double-click)"
+      >
+        ⛶
+      </button>
     </div>
 
     <script>
+      /* =====================================================
+         FYNCOFFEE CUSTOMER DISPLAY V3
+         ===================================================== */
+
+      /* =====================================================
+         KONFIGURASI
+         ===================================================== */
+
       const API =
         "https://script.google.com/macros/s/AKfycbz-1nUJmKOjNYQEUKRwAEBt7h1D9xs3injteRNf0WjJhY6aWk0U2hpbmpYjXuKmHRih/exec?action=display";
 
-      let transaksiSebelumnya = "";
+      const POLL_INTERVAL = 2000;
+      const POLL_BACKOFF_MAX = 16000;
+      const SUCCESS_DURATION = 6000;
+      const BEEP_ENABLED = true;
 
-      function cekTransaksi() {
-        fetch(API)
-          .then((res) => res.json())
+      /* localStorage key untuk sinkronisasi device-sama */
+      const DISPLAY_KEY = "fyncoffee_display";
 
-          .then((data) => {
-            console.log(data);
+      /* =====================================================
+         STATE
+         ===================================================== */
 
-            // BELUM ADA TRANSAKSI
+      const state = {
+        transaksiSebelumnya: "",
+        totalSebelumnya: 0,
+        itemsSebelumnya: "",
 
-            if (data.status == "kosong") {
-              resetDisplay();
+        sedangSukses: false,
 
-              return;
-            }
+        sudahLoadPertama: false,
+        sedangLoading: false,
 
-            // PEMBAYARAN SELESAI
+        errorCount: 0,
+        currentPollInterval: POLL_INTERVAL,
 
-            if (data.status == "Lunas") {
-              tampilSukses();
+        pollTimer: null,
+        successTimer: null,
 
-              return;
-            }
+        lastItemsSignature: "",
+      };
 
-            // TRANSAKSI BARU
+      /* =====================================================
+         HELPER: FORMAT RUPIAH
+         ===================================================== */
 
-            if (data.id != transaksiSebelumnya) {
-              transaksiSebelumnya = data.id;
-            }
-
-            if (data.total) {
-              document.getElementById("total").innerHTML = Number(
-                data.total,
-              ).toLocaleString("id-ID");
-
-              document.getElementById("instruksi").innerHTML =
-                "Silahkan Scan QRIS";
-
-              document.getElementById("status").innerHTML =
-                "Menunggu Pembayaran";
-            }
-          })
-
-          .catch((err) => {
-            console.log(err);
-
-            document.getElementById("status").innerHTML = "Koneksi gagal";
-          });
+      function formatRupiah(angka) {
+        const nilai = Number(angka) || 0;
+        return nilai.toLocaleString("id-ID");
       }
 
-      // ========================
-      // PEMBAYARAN BERHASIL
-      // ========================
+      /* =====================================================
+         HELPER: UPDATE CLOCK
+         ===================================================== */
 
-      function tampilSukses() {
-        document.querySelector(".customer").innerHTML = `
+      function updateClock() {
+        const clock = document.getElementById("clock");
+        if (!clock) return;
 
-<h1 class="success">
-
-PEMBAYARAN BERHASIL
-
-</h1>
-
-
-<h2>
-
-TERIMA KASIH
-
-</h2>
-
-
-<p>
-
-Pesanan sedang diproses
-
-</p>
-
-
-`;
-
-        setTimeout(() => {
-          resetDisplay();
-        }, 5000);
+        clock.textContent = new Date().toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
       }
 
-      // ========================
-      // RESET DISPLAY
-      // ========================
+      setInterval(updateClock, 1000);
+      updateClock();
 
-      function resetDisplay() {
-        document.querySelector(".customer").innerHTML = `
+      /* =====================================================
+         HELPER: KONEKSI
+         ===================================================== */
 
-<h1 id="judul">
+      function setConnection(status, text) {
+        const dot = document.getElementById("connDot");
+        const label = document.getElementById("connText");
+        if (!dot || !label) return;
 
-TOTAL PEMBAYARAN
+        dot.classList.remove("offline", "loading");
 
-</h1>
+        if (status === "offline") dot.classList.add("offline");
+        else if (status === "loading") dot.classList.add("loading");
 
-
-
-<div class="total">
-
-
-Rp 
-
-<span id="total">
-
-0
-
-</span>
-
-
-</div>
-
-
-
-
-<img 
-
-src="Qris Fyn.jpeg"
-
-class="qris"
-
-
->
-
-
-
-
-
-<h2 id="instruksi">
-
-Silahkan Scan QRIS
-
-</h2>
-
-
-
-
-<p id="status">
-
-Menunggu transaksi...
-
-</p>
-
-
-
-`;
+        label.textContent = text;
       }
 
-      // ========================
-      // FULLSCREEN
-      // ========================
+      /* =====================================================
+         HELPER: STATUS TEXT
+         ===================================================== */
 
-      function fullscreen() {
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen();
+      function setStatus(teks, error = false) {
+        const status = document.getElementById("status");
+        if (!status) return;
+
+        status.textContent = teks;
+        status.classList.toggle("connection-error", error);
+      }
+
+      /* =====================================================
+         HELPER: BEEP
+         ===================================================== */
+
+      let audioCtx = null;
+
+      function playBeep() {
+        if (!BEEP_ENABLED) return;
+
+        try {
+          audioCtx =
+            audioCtx ||
+            new (window.AudioContext || window.webkitAudioContext)();
+
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+          osc.frequency.setValueAtTime(1320, audioCtx.currentTime + 0.1);
+
+          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioCtx.currentTime + 0.35,
+          );
+
+          osc.start(audioCtx.currentTime);
+          osc.stop(audioCtx.currentTime + 0.35);
+        } catch (e) {
+          /* ignore */
         }
       }
 
-      // refresh setiap 2 detik
+      /* =====================================================
+         HELPER: SET TOTAL (dengan animasi)
+         ===================================================== */
 
-      setInterval(cekTransaksi, 2000);
+      function setTotal(value) {
+        const totalEl = document.getElementById("total");
+        const totalWrap = totalEl ? totalEl.parentElement : null;
+        if (!totalEl) return;
+
+        const newValue = Number(value) || 0;
+
+        if (newValue === state.totalSebelumnya) return;
+
+        totalEl.textContent = formatRupiah(newValue);
+        state.totalSebelumnya = newValue;
+
+        if (totalWrap) {
+          totalWrap.classList.remove("changed");
+          void totalWrap.offsetWidth;
+          totalWrap.classList.add("changed");
+
+          setTimeout(() => totalWrap.classList.remove("changed"), 500);
+        }
+      }
+
+      /* =====================================================
+         HELPER: SET SUB INFO (jumlah item)
+         ===================================================== */
+
+      function setSubInfo(count) {
+        const el = document.getElementById("subInfo");
+        if (!el) return;
+
+        const n = Number(count) || 0;
+
+        if (n <= 0) {
+          el.classList.add("hidden");
+          el.textContent = "";
+        } else {
+          el.classList.remove("hidden");
+          el.textContent = `${n} item dalam pesanan`;
+        }
+      }
+
+      /* =====================================================
+         NORMALIZE ITEM
+         ===================================================== */
+
+      function normalizeItem(item) {
+        if (!item || typeof item !== "object") return null;
+
+        const nama =
+          item.nama_produk ||
+          item.nama ||
+          item.name ||
+          item.product_name ||
+          "Produk";
+
+        const qty = Number(
+          item.qty ?? item.quantity ?? item.jumlah ?? item.amount ?? 0,
+        );
+
+        const harga = Number(
+          item.harga_jual ??
+            item.harga ??
+            item.price ??
+            item.harga_satuan ??
+            item.unit_price ??
+            0,
+        );
+
+        const subtotal =
+          item.subtotal !== undefined && item.subtotal !== null
+            ? Number(item.subtotal)
+            : qty * harga;
+
+        return {
+          nama: String(nama),
+          qty: qty || 0,
+          harga: harga || 0,
+          subtotal: subtotal || 0,
+        };
+      }
+
+      /* =====================================================
+         RENDER ITEM LIST
+         ===================================================== */
+
+      function renderItems(rawItems) {
+        const panel = document.getElementById("itemsPanel");
+        const list = document.getElementById("itemsList");
+        const countEl = document.getElementById("itemsHeaderCount");
+
+        if (!panel || !list) return;
+
+        /* Normalize items */
+        const items = (Array.isArray(rawItems) ? rawItems : [])
+          .map(normalizeItem)
+          .filter(Boolean);
+
+        /* Buat signature untuk cegah re-render berlebihan */
+        const signature = JSON.stringify(
+          items.map((i) => `${i.nama}|${i.qty}|${i.harga}`),
+        );
+
+        if (signature === state.lastItemsSignature) return;
+        state.lastItemsSignature = signature;
+
+        /* Kalau kosong → sembunyikan panel */
+        if (!items.length) {
+          panel.classList.remove("visible");
+          list.innerHTML = "";
+          if (countEl) countEl.textContent = "0 item";
+          return;
+        }
+
+        /* Tampilkan panel */
+        panel.classList.add("visible");
+
+        const totalQty = items.reduce((s, i) => s + i.qty, 0);
+        if (countEl) {
+          countEl.textContent = `${totalQty} item`;
+        }
+
+        /* Render baris item */
+        list.innerHTML = items
+          .map(
+            (item) => `
+              <div class="item-row">
+                <div class="item-info">
+                  <div class="item-name">${escapeHTML(item.nama)}</div>
+                  <div class="item-qty">
+                    ${item.qty} × Rp ${formatRupiah(item.harga)}
+                  </div>
+                </div>
+                <div class="item-price">
+                  Rp ${formatRupiah(item.subtotal)}
+                </div>
+              </div>
+            `,
+          )
+          .join("");
+
+        /* Auto-scroll ke bawah kalau item banyak */
+        requestAnimationFrame(() => {
+          panel.scrollTop = panel.scrollHeight;
+        });
+      }
+
+      /* =====================================================
+         HIDE ITEMS PANEL
+         ===================================================== */
+
+      function hideItems() {
+        const panel = document.getElementById("itemsPanel");
+        const list = document.getElementById("itemsList");
+        const countEl = document.getElementById("itemsHeaderCount");
+
+        if (panel) panel.classList.remove("visible");
+        if (list) list.innerHTML = "";
+        if (countEl) countEl.textContent = "0 item";
+
+        state.lastItemsSignature = "";
+      }
+
+      /* =====================================================
+         ESCAPE HTML
+         ===================================================== */
+
+      function escapeHTML(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      /* =====================================================
+         IMAGE ERROR FALLBACK
+         ===================================================== */
+
+      function setupQrisFallback() {
+        const img = document.getElementById("qrisImage");
+        const fallback = document.getElementById("qrisFallback");
+        if (!img || !fallback) return;
+
+        const showFallback = () => {
+          img.style.display = "none";
+          fallback.style.display = "flex";
+        };
+
+        img.addEventListener("error", showFallback);
+
+        /* Cek kalau sudah error (cached) */
+        if (img.complete && img.naturalWidth === 0) {
+          showFallback();
+        }
+      }
+
+      setupQrisFallback();
+
+      /* =====================================================
+         UPDATE FULL UI
+         ===================================================== */
+
+      function updateDisplay(data) {
+        if (!data) return;
+
+        /* Update total */
+        if (data.total !== undefined && data.total !== null) {
+          setTotal(data.total);
+        }
+
+        /* Ambil items dari berbagai key */
+        const rawItems = Array.isArray(data.items)
+          ? data.items
+          : Array.isArray(data.detail)
+            ? data.detail
+            : Array.isArray(data.keranjang)
+              ? data.keranjang
+              : [];
+
+        /* Render items */
+        renderItems(rawItems);
+
+        /* Update sub info (jumlah item) */
+        const totalQty = rawItems
+          .map(normalizeItem)
+          .filter(Boolean)
+          .reduce((s, i) => s + i.qty, 0);
+
+        setSubInfo(totalQty);
+
+        /* Update status */
+        const instruksi = document.getElementById("instruksi");
+        if (instruksi) instruksi.textContent = "Silahkan Scan QRIS";
+
+        setStatus("Menunggu Pembayaran");
+
+        const cd = document.getElementById("customerDisplay");
+        if (cd) cd.classList.add("waiting");
+      }
+
+      /* =====================================================
+         POLLING
+         ===================================================== */
+
+      function startPolling(interval = POLL_INTERVAL) {
+        stopPolling();
+
+        state.currentPollInterval = interval;
+
+        state.pollTimer = setTimeout(async function loop() {
+          await cekTransaksi();
+          state.pollTimer = setTimeout(loop, state.currentPollInterval);
+        }, interval);
+      }
+
+      function stopPolling() {
+        if (state.pollTimer) {
+          clearTimeout(state.pollTimer);
+          state.pollTimer = null;
+        }
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stopPolling();
+        } else {
+          cekTransaksi();
+          startPolling(state.currentPollInterval);
+        }
+      });
+
+      /* =====================================================
+         CEK TRANSAKSI VIA API
+         ===================================================== */
+
+      async function cekTransaksi() {
+        if (state.sedangSukses) return;
+        if (state.sedangLoading) return;
+
+        state.sedangLoading = true;
+
+        try {
+          const response = await fetch(API + "&t=" + Date.now(), {
+            method: "GET",
+            cache: "no-store",
+          });
+
+          if (!response.ok) throw new Error("HTTP " + response.status);
+
+          const data = await response.json();
+
+          state.errorCount = 0;
+          setConnection("online", "Online");
+
+          /* ==============================================
+             KOSONG
+             ============================================== */
+          if (!data || data.status === "kosong") {
+            state.sudahLoadPertama = true;
+            resetDisplay();
+            return;
+          }
+
+          /* ==============================================
+             LUNAS / BERHASIL
+             ============================================== */
+          if (data.status === "Lunas" || data.status === "Berhasil") {
+            tampilSukses(data);
+            return;
+          }
+
+          /* ==============================================
+             TRANSAKSI BARU
+             ============================================== */
+          if (data.id && data.id !== state.transaksiSebelumnya) {
+            state.transaksiSebelumnya = data.id;
+
+            if (state.sudahLoadPertama) {
+              playBeep();
+            }
+          }
+
+          /* ==============================================
+             UPDATE DISPLAY
+             ============================================== */
+          updateDisplay(data);
+
+          state.sudahLoadPertama = true;
+        } catch (error) {
+          console.error("Customer Display Error:", error);
+
+          state.errorCount++;
+
+          const nextInterval = Math.min(
+            POLL_INTERVAL * Math.pow(2, state.errorCount - 1),
+            POLL_BACKOFF_MAX,
+          );
+
+          state.currentPollInterval = nextInterval;
+
+          setConnection("offline", "Terputus");
+          setStatus("Koneksi gagal — mencoba ulang…", true);
+        } finally {
+          state.sedangLoading = false;
+        }
+      }
+
+      /* =====================================================
+         PEMBAYARAN BERHASIL
+         ===================================================== */
+
+      function tampilSukses(data) {
+        if (state.sedangSukses) return;
+
+        state.sedangSukses = true;
+
+        playBeep();
+
+        const totalAkhir = data && data.total ? Number(data.total) : 0;
+
+        const customer = document.getElementById("customerDisplay");
+        if (!customer) return;
+
+        customer.classList.remove("waiting");
+
+        customer.innerHTML = `
+          <div class="brand">
+            <div class="brand-logo">☕</div>
+            <div class="brand-name">FYNCOFFEE</div>
+          </div>
+
+          <div class="top-right">
+            <div class="clock" id="clock">--:--:--</div>
+            <div class="connection-pill">
+              <span class="conn-dot" id="connDot"></span>
+              <span id="connText">Online</span>
+            </div>
+          </div>
+
+          <div class="success-screen">
+            <div class="success-icon">✓</div>
+
+            <h1 class="success-title">PEMBAYARAN BERHASIL</h1>
+
+            <h2 class="success-subtitle">TERIMA KASIH</h2>
+
+            <p class="success-description">
+              Pesanan Anda sedang diproses
+            </p>
+
+            ${
+              totalAkhir > 0
+                ? `<div style="
+                    margin-top:20px;
+                    font-size:clamp(20px, 4vw, 40px);
+                    font-weight:900;
+                    letter-spacing:-0.5px;
+                    font-variant-numeric:tabular-nums;
+                  ">Rp ${formatRupiah(totalAkhir)}</div>`
+                : ""
+            }
+          </div>
+
+          <button
+            type="button"
+            class="fullscreen-btn"
+            onclick="toggleFullscreen()"
+            aria-label="Toggle fullscreen"
+          >⛶</button>
+        `;
+
+        updateClock();
+
+        clearTimeout(state.successTimer);
+
+        state.successTimer = setTimeout(() => {
+          state.sedangSukses = false;
+          state.transaksiSebelumnya = "";
+          state.totalSebelumnya = 0;
+          state.lastItemsSignature = "";
+
+          /* Render ulang tampilan idle penuh */
+          renderIdleDisplay();
+        }, SUCCESS_DURATION);
+      }
+
+      /* =====================================================
+         RENDER IDLE DISPLAY (full HTML replace)
+         ===================================================== */
+
+      function renderIdleDisplay() {
+        const customer = document.getElementById("customerDisplay");
+        if (!customer) return;
+
+        customer.classList.add("waiting");
+
+        customer.innerHTML = `
+          <div class="brand">
+            <div class="brand-logo">☕</div>
+            <div class="brand-name">FYNCOFFEE</div>
+          </div>
+
+          <div class="top-right">
+            <div class="clock" id="clock">--:--:--</div>
+            <div class="connection-pill">
+              <span class="conn-dot" id="connDot"></span>
+              <span id="connText">Online</span>
+            </div>
+          </div>
+
+          <div class="content" id="contentArea">
+            <div class="left-panel">
+              <h1 id="judul">TOTAL PEMBAYARAN</h1>
+
+              <div class="total">
+                Rp
+                <span id="total">0</span>
+              </div>
+
+              <div class="sub-info hidden" id="subInfo"></div>
+
+              <div class="items-panel" id="itemsPanel">
+                <div class="items-header">
+                  <span>DETAIL PESANAN</span>
+                  <span class="items-header-count" id="itemsHeaderCount">0 item</span>
+                </div>
+
+                <div class="items-list" id="itemsList"></div>
+              </div>
+            </div>
+
+            <div class="right-panel">
+              <div class="qris-wrapper">
+                <img
+                  src="Qris Fyn.jpg"
+                  class="qris"
+                  id="qrisImage"
+                  alt="QRIS FYNCOFFEE"
+                />
+
+                <div class="qris-fallback" id="qrisFallback">
+                  <div class="qr-icon">▣</div>
+                  <div>QR Code belum tersedia</div>
+                  <div style="font-size:10px;color:#666">
+                    Letakkan file <b>Qris Fyn.jpg</b> di folder yang sama
+                  </div>
+                </div>
+
+                <div class="scan-badge">
+                  <span class="scan-dot"></span>
+                  SCAN UNTUK BAYAR
+                </div>
+              </div>
+
+              <h2 id="instruksi">Silahkan Scan QRIS</h2>
+
+              <p id="status">Menunggu transaksi...</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="fullscreen-btn"
+            onclick="toggleFullscreen()"
+            aria-label="Toggle fullscreen"
+          >⛶</button>
+        `;
+
+        /* Re-setup */
+        setupQrisFallback();
+        updateClock();
+
+        /* Reset state */
+        state.totalSebelumnya = 0;
+        state.lastItemsSignature = "";
+      }
+
+      /* =====================================================
+         RESET DISPLAY (dipanggil saat transaksi kosong)
+         ===================================================== */
+
+      function resetDisplay() {
+        if (state.sedangSukses) return;
+
+        const customer = document.getElementById("customerDisplay");
+        if (!customer) return;
+
+        /* Cek apakah elemen utama masih ada (belum di-replace) */
+        const totalEl = document.getElementById("total");
+        const itemsPanel = document.getElementById("itemsPanel");
+
+        if (!totalEl || !itemsPanel) {
+          /* Struktur HTML sudah tidak sesuai (misal abis sukses) */
+          renderIdleDisplay();
+          return;
+        }
+
+        /* Kalau sudah idle, cukup reset angka */
+        setTotal(0);
+        setSubInfo(0);
+        hideItems();
+
+        const instruksi = document.getElementById("instruksi");
+        if (instruksi) instruksi.textContent = "Silahkan Scan QRIS";
+
+        setStatus("Menunggu transaksi...");
+
+        customer.classList.add("waiting");
+      }
+
+      /* =====================================================
+         FULLSCREEN
+         ===================================================== */
+
+      async function toggleFullscreen() {
+        try {
+          if (document.fullscreenElement) {
+            await document.exitFullscreen();
+          } else {
+            if (document.documentElement.requestFullscreen) {
+              await document.documentElement.requestFullscreen();
+            }
+          }
+        } catch (error) {
+          console.log("Fullscreen tidak tersedia:", error);
+        }
+      }
+
+      document.addEventListener("dblclick", toggleFullscreen);
+
+      document.addEventListener("fullscreenchange", () => {
+        const isFs = Boolean(document.fullscreenElement);
+
+        document.querySelectorAll(".fullscreen-btn").forEach((b) => {
+          b.title = isFs ? "Keluar fullscreen" : "Masuk fullscreen";
+        });
+
+        console.log("Fullscreen:", isFs);
+      });
+
+      /* =====================================================
+         KEYBOARD
+         ===================================================== */
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "f" || e.key === "F") {
+          toggleFullscreen();
+        }
+
+        if (e.key === "r" || e.key === "R") {
+          cekTransaksi();
+        }
+      });
+
+      /* =====================================================
+         LOCALSTORAGE SYNC (bonus, same-device)
+         ===================================================== */
+
+      window.addEventListener("storage", (event) => {
+        if (event.key !== DISPLAY_KEY || !event.newValue) return;
+        if (state.sedangSukses) return;
+
+        try {
+          const payload = JSON.parse(event.newValue);
+
+          /* Update total */
+          if (payload.total !== undefined) {
+            setTotal(payload.total);
+          }
+
+          /* Update items */
+          renderItems(payload.items || []);
+
+          /* Update sub info */
+          if (payload.count !== undefined) {
+            setSubInfo(payload.count);
+          }
+
+          /* Update status */
+          setStatus("Menunggu Pembayaran");
+
+          const cd = document.getElementById("customerDisplay");
+          if (cd) cd.classList.add("waiting");
+        } catch (e) {
+          /* ignore */
+        }
+      });
+
+      /* Cek localStorage sekali saat load (same-device) */
+      (function loadFromLocalStorage() {
+        try {
+          const raw = localStorage.getItem(DISPLAY_KEY);
+          if (!raw) return;
+
+          const payload = JSON.parse(raw);
+
+          if (payload.items && payload.items.length) {
+            renderItems(payload.items);
+            setTotal(payload.total || 0);
+            setSubInfo(payload.count || 0);
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+
+      /* =====================================================
+         INIT
+         ===================================================== */
 
       cekTransaksi();
+      startPolling(POLL_INTERVAL);
+
+      console.log(
+        "%c FYNCOFFEE CUSTOMER DISPLAY V3 ",
+        "background:#10b981;color:white;padding:6px 12px;border-radius:6px;font-weight:bold;",
+      );
+      console.log("Endpoint:", API);
+      console.log("Polling:", POLL_INTERVAL + "ms");
     </script>
   </body>
 </html>
