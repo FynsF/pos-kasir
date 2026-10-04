@@ -2,10 +2,14 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Struk Pembayaran</title>
+    <title>Struk FYNCOFFEE</title>
 
     <style>
+      /* =====================================================
+         RESET
+      ===================================================== */
       * {
         margin: 0;
         padding: 0;
@@ -14,97 +18,134 @@
 
       html {
         width: 58mm;
-
-        margin: 0;
-
-        padding: 0;
-
-        background: #fff;
+        min-width: 58mm;
+        background: #f2f2f2;
       }
 
       body {
         width: 58mm;
-
+        min-width: 58mm;
         margin: 0 auto;
-
         padding: 0;
-
-        background: #fff;
-
-        color: #000;
-
-        font-family: "Arial Narrow", "Courier New", monospace;
+        background: #f2f2f2;
+        color: #111;
+        font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
 
         font-size: 9px;
+        line-height: 1.25;
 
         -webkit-print-color-adjust: exact;
-
         print-color-adjust: exact;
       }
 
-      /* =====================
-   AREA STRUK PANDA TM
-===================== */
-
+      /* =====================================================
+         STRUK
+      ===================================================== */
       #struk {
         width: 48mm;
+        margin: 0 auto;
+        padding: 4mm 0 5mm;
 
-        margin-left: auto;
+        background: #fff;
 
-        margin-right: auto;
-
-        padding: 3mm 0 3mm 0;
+        /* supaya render PDF lebih tajam */
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
       }
 
-      /* CENTER */
-
-      .center {
+      /* =====================================================
+         HEADER
+      ===================================================== */
+      .header {
         text-align: center;
       }
 
-      /* LOGO */
-
       .logo {
-        width: 40px;
-
-        height: 40px;
+        width: 43px;
+        height: 43px;
 
         display: block;
 
-        margin: 0 auto 4px;
+        margin: 0 auto 3px;
 
         object-fit: contain;
       }
 
-      /* HEADER */
+      .brand {
+        font-size: 15px;
+        font-weight: 900;
+        letter-spacing: 1.5px;
 
-      h3 {
-        font-size: 13px;
-
-        font-weight: bold;
-
-        margin: 2px 0;
+        margin: 1px 0 2px;
       }
 
-      p {
-        line-height: 1.25;
+      .tagline {
+        font-size: 8px;
+        letter-spacing: 0.7px;
 
-        margin: 1px 0;
+        margin-bottom: 3px;
       }
 
-      /* GARIS */
+      .address {
+        font-size: 8.5px;
+        line-height: 1.35;
+      }
 
+      /* =====================================================
+         GARIS
+      ===================================================== */
       .line {
         width: 100%;
 
-        border-top: 1px dashed #000;
+        border-top: 1px dashed #222;
 
-        margin: 5px 0;
+        margin: 6px 0;
       }
 
-      /* TABLE */
+      .line-solid {
+        width: 100%;
 
-      table {
+        border-top: 1px solid #111;
+
+        margin: 6px 0;
+      }
+
+      /* =====================================================
+         INFO TRANSAKSI
+      ===================================================== */
+      .info-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      .info-table td {
+        padding: 1.5px 0;
+
+        vertical-align: top;
+
+        font-size: 8.5px;
+      }
+
+      .info-label {
+        width: 30%;
+        color: #555;
+      }
+
+      .info-value {
+        width: 70%;
+
+        text-align: right;
+
+        font-weight: 600;
+
+        word-break: break-word;
+      }
+
+      /* =====================================================
+         ITEM TABLE
+      ===================================================== */
+      .items-table {
         width: 100%;
 
         border-collapse: collapse;
@@ -112,88 +153,408 @@
         table-layout: fixed;
       }
 
-      td {
-        padding: 2px 0;
-
+      .items-table th,
+      .items-table td {
         vertical-align: top;
       }
 
-      /* ITEM */
+      .items-table th {
+        padding: 1px 0 3px;
 
-      .item {
-        width: 56%;
+        font-size: 8px;
 
-        word-wrap: break-word;
+        font-weight: 700;
+
+        text-transform: uppercase;
       }
 
-      /* JUMLAH */
+      .items-table td {
+        padding: 2px 0;
 
-      .qty {
+        font-size: 8.5px;
+
+        line-height: 1.25;
+      }
+
+      /* =====================================================
+         COLUMN
+      ===================================================== */
+      .col-item {
+        width: 53%;
+
+        text-align: left;
+
+        padding-right: 2px !important;
+      }
+
+      .col-qty {
         width: 12%;
 
         text-align: center;
       }
 
-      /* HARGA */
-
-      .price {
-        width: 32%;
+      .col-price {
+        width: 35%;
 
         text-align: right;
       }
 
-      .right {
-        text-align: right;
+      /* =====================================================
+         NAMA PRODUK
+      ===================================================== */
+      .product-name {
+        font-weight: 600;
+
+        word-break: break-word;
+        overflow-wrap: anywhere;
       }
 
-      /* TOTAL */
+      .product-price {
+        display: block;
 
-      .total td {
+        color: #555;
+
+        font-size: 7.5px;
+
+        margin-top: 1px;
+      }
+
+      /* =====================================================
+         SUMMARY
+      ===================================================== */
+      .summary {
+        width: 100%;
+
+        border-collapse: collapse;
+      }
+
+      .summary td {
+        padding: 2px 0;
+
+        font-size: 8.5px;
+
+        vertical-align: middle;
+      }
+
+      .summary .label {
+        width: 48%;
+      }
+
+      .summary .value {
+        width: 52%;
+
+        text-align: right;
+
+        font-weight: 600;
+      }
+
+      /* =====================================================
+         TOTAL
+      ===================================================== */
+      .grand-total {
+        margin: 4px 0;
+
+        padding: 5px 0;
+
+        border-top: 1px solid #111;
+        border-bottom: 1px solid #111;
+      }
+
+      .grand-total table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .grand-total td {
         font-size: 11px;
 
-        font-weight: bold;
+        font-weight: 900;
 
-        padding-top: 5px;
+        padding: 1px 0;
       }
 
-      /* FOOTER */
+      .grand-total .total-label {
+        width: 35%;
+      }
 
+      .grand-total .total-value {
+        width: 65%;
+
+        text-align: right;
+
+        font-size: 12px;
+      }
+
+      /* =====================================================
+         PAYMENT
+      ===================================================== */
+      .payment-title {
+        font-size: 8px;
+
+        font-weight: 800;
+
+        text-transform: uppercase;
+
+        letter-spacing: 0.5px;
+
+        margin-bottom: 2px;
+      }
+
+      .payment-table {
+        width: 100%;
+
+        border-collapse: collapse;
+      }
+
+      .payment-table td {
+        padding: 2px 0;
+
+        font-size: 8.5px;
+      }
+
+      .payment-label {
+        width: 48%;
+      }
+
+      .payment-value {
+        width: 52%;
+
+        text-align: right;
+
+        font-weight: 700;
+      }
+
+      /* =====================================================
+         PAYMENT BADGE
+      ===================================================== */
+      .payment-method {
+        display: inline-block;
+
+        padding: 2px 5px;
+
+        border: 1px solid #111;
+
+        border-radius: 3px;
+
+        font-size: 7px;
+
+        font-weight: 800;
+
+        text-transform: uppercase;
+
+        letter-spacing: 0.4px;
+      }
+
+      /* Status badge (Lunas / Pending) */
+      .status-badge {
+        display: inline-block;
+
+        padding: 2px 6px;
+
+        border-radius: 3px;
+
+        font-size: 7px;
+
+        font-weight: 800;
+
+        text-transform: uppercase;
+
+        letter-spacing: 0.4px;
+
+        background: #111;
+        color: #fff;
+      }
+
+      .status-badge.lunas {
+        background: #111;
+        color: #fff;
+      }
+
+      .status-badge.pending {
+        background: #fff;
+        color: #111;
+        border: 1px solid #111;
+      }
+
+      .status-badge.batal {
+        background: #fff;
+        color: #111;
+        border: 1px dashed #111;
+        text-decoration: line-through;
+      }
+
+      /* =====================================================
+         FOOTER
+      ===================================================== */
       .footer {
+        text-align: center;
+
+        margin-top: 7px;
+
+        font-size: 8px;
+
+        line-height: 1.4;
+      }
+
+      .footer-main {
+        font-size: 9px;
+
+        font-weight: 800;
+
+        margin-bottom: 2px;
+      }
+
+      .footer-sub {
+        color: #444;
+
+        font-size: 7.5px;
+      }
+
+      .footer-warning {
+        margin-top: 5px;
+
+        font-size: 7px;
+
+        line-height: 1.3;
+      }
+
+      /* =====================================================
+         QRIS INFO
+      ===================================================== */
+      .qris-note {
+        text-align: center;
+
+        margin-top: 5px;
+
+        font-size: 7.5px;
+
+        font-weight: 600;
+      }
+
+      /* =====================================================
+         EMPTY / LOADING STATE
+      ===================================================== */
+      .state {
+        padding: 30px 10px;
+
         text-align: center;
 
         font-size: 9px;
 
-        margin-top: 6px;
+        color: #555;
       }
 
-      /* BUTTON */
+      .state strong {
+        display: block;
+
+        margin-bottom: 4px;
+
+        color: #111;
+
+        font-size: 11px;
+      }
+
+      .state .icon {
+        font-size: 32px;
+
+        margin-bottom: 8px;
+      }
+
+      /* =====================================================
+         PRINT BUTTON
+      ===================================================== */
+      .actions {
+        width: 100%;
+
+        padding: 18px 10px 25px;
+
+        background: #f2f2f2;
+
+        text-align: center;
+      }
 
       button {
         width: 220px;
 
         display: block;
 
-        margin: 12px auto;
+        margin: 8px auto;
 
-        padding: 10px;
+        padding: 11px 14px;
 
         border: none;
 
-        border-radius: 6px;
+        border-radius: 8px;
 
         background: #111;
 
-        color: white;
+        color: #fff;
+
+        font-size: 12px;
+
+        font-weight: 700;
 
         cursor: pointer;
 
-        font-size: 13px;
+        transition:
+          transform 0.15s ease,
+          opacity 0.15s ease;
       }
 
-      /* =====================
-       PRINT PANDA TM
-===================== */
+      button:hover {
+        transform: translateY(-1px);
 
+        opacity: 0.9;
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+
+        cursor: not-allowed;
+
+        transform: none;
+      }
+
+      .btn-pdf {
+        background: #555;
+      }
+
+      .btn-ghost {
+        background: #fff;
+        color: #111;
+        border: 1px solid #d1d5db;
+      }
+
+      /* =====================================================
+         MOBILE PREVIEW
+      ===================================================== */
+      @media screen and (max-width: 480px) {
+        html,
+        body {
+          width: 100%;
+          min-width: 0;
+        }
+
+        body {
+          background: #e9e9e9;
+        }
+
+        #struk {
+          width: 48mm;
+
+          margin: 15px auto;
+
+          box-shadow: 0 3px 15px rgba(0, 0, 0, 0.12);
+        }
+      }
+
+      /* =====================================================
+         PRINT
+      ===================================================== */
       @media print {
         @page {
           size: 58mm auto;
@@ -204,219 +565,364 @@
         html,
         body {
           width: 58mm;
+          min-width: 58mm;
 
           margin: 0;
-
           padding: 0;
+
+          background: #fff;
         }
 
         #struk {
           width: 48mm;
 
-          margin-left: auto;
-
-          margin-right: auto;
+          margin: 0 auto;
 
           padding-top: 2mm;
+          padding-bottom: 3mm;
+
+          box-shadow: none;
         }
 
+        .actions,
         button {
-          display: none;
+          display: none !important;
         }
       }
 
-      @page {
-        size: 58mm auto;
-
-        margin: 0;
+      /* =====================================================
+         REDUCED MOTION
+      ===================================================== */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
       }
     </style>
   </head>
 
   <body>
+    <!-- =====================================================
+         STRUK
+    ===================================================== -->
     <div id="struk">
-      <div class="center">
+      <!-- HEADER -->
+      <div class="header">
         <img
           src="Logo no background.png"
           class="logo"
           crossorigin="anonymous"
+          alt="FYNCOFFEE"
           onerror="this.style.display = 'none'"
         />
 
-        <h3>FYNCOFFEE</h3>
+        <div class="brand">FYNCOFFEE</div>
 
-        <p>Jl. Kesawan</p>
+        <div class="tagline">COFFEE • MILK • GOOD MOOD</div>
 
-        <p>Telp : 081269441924</p>
+        <div class="address">Jl. Kesawan</div>
+
+        <div class="address">Telp : 081269441924</div>
       </div>
 
       <div class="line"></div>
 
-      <table>
+      <!-- INFO TRANSAKSI -->
+      <table class="info-table">
         <tr>
-          <td>No Invoice</td>
-
-          <td class="right">
-            <span id="id"> - </span>
+          <td class="info-label">Invoice</td>
+          <td class="info-value">
+            <span id="id">-</span>
           </td>
         </tr>
 
         <tr>
-          <td>Tanggal</td>
-
-          <td class="right">
-            <span id="tanggal"> - </span>
+          <td class="info-label">Tanggal</td>
+          <td class="info-value">
+            <span id="tanggal">-</span>
           </td>
         </tr>
 
         <tr>
-          <td>Kasir</td>
+          <td class="info-label">Kasir</td>
+          <td class="info-value">
+            <span id="kasir">Admin</span>
+          </td>
+        </tr>
 
-          <td class="right">
-            <span id="kasir"> Admin </span>
+        <tr>
+          <td class="info-label">Status</td>
+          <td class="info-value">
+            <span class="status-badge lunas" id="status">Lunas</span>
           </td>
         </tr>
       </table>
 
       <div class="line"></div>
 
-      <table>
+      <!-- ITEM -->
+      <table class="items-table">
         <thead>
           <tr>
-            <td class="item">Item</td>
-
-            <td class="qty">Qty</td>
-
-            <td class="price">Jumlah</td>
+            <th class="col-item">Item</th>
+            <th class="col-qty">Qty</th>
+            <th class="col-price">Jumlah</th>
           </tr>
         </thead>
 
-        <tbody id="detail"></tbody>
+        <tbody id="detail">
+          <!-- DATA ITEM DARI STRUK.JS -->
+        </tbody>
       </table>
 
       <div class="line"></div>
 
-      <table>
+      <!-- SUMMARY -->
+      <table class="summary">
         <tr>
-          <td>Subtotal</td>
-
-          <td class="right">Rp <span id="subtotal">0</span></td>
+          <td class="label">Subtotal</td>
+          <td class="value">Rp <span id="subtotal">0</span></td>
         </tr>
 
         <tr>
-          <td>Diskon</td>
-
-          <td class="right">Rp <span id="diskon">0</span></td>
+          <td class="label">Diskon</td>
+          <td class="value">Rp <span id="diskon">0</span></td>
         </tr>
 
         <tr>
-          <td>Pajak</td>
-
-          <td class="right">Rp <span id="pajak">0</span></td>
-        </tr>
-
-        <tr class="total">
-          <td>TOTAL</td>
-
-          <td class="right">Rp <span id="total">0</span></td>
-        </tr>
-
-        <tr>
-          <td>Bayar</td>
-
-          <td class="right">Rp <span id="bayar">0</span></td>
-        </tr>
-
-        <tr>
-          <td>Kembali</td>
-
-          <td class="right">Rp <span id="kembali">0</span></td>
+          <td class="label">Pajak</td>
+          <td class="value">Rp <span id="pajak">0</span></td>
         </tr>
       </table>
 
+      <!-- TOTAL -->
+      <div class="grand-total">
+        <table>
+          <tr>
+            <td class="total-label">TOTAL</td>
+            <td class="total-value">Rp <span id="total">0</span></td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- PAYMENT -->
+      <div class="payment-title">Pembayaran</div>
+
+      <table class="payment-table">
+        <tr>
+          <td class="payment-label">Metode</td>
+          <td class="payment-value">
+            <span class="payment-method" id="metode">-</span>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="payment-label">Bayar</td>
+          <td class="payment-value">Rp <span id="bayar">0</span></td>
+        </tr>
+
+        <tr>
+          <td class="payment-label">Kembali</td>
+          <td class="payment-value">Rp <span id="kembali">0</span></td>
+        </tr>
+      </table>
+
+      <!-- QRIS NOTE (hanya muncul jika metode QRIS) -->
+      <div class="qris-note" id="qrisNote" style="display: none">
+        ✓ Pembayaran QRIS terverifikasi
+      </div>
+
       <div class="line"></div>
 
+      <!-- FOOTER -->
       <div class="footer">
-        <p>Pembayaran QRIS</p>
+        <div class="footer-main">TERIMA KASIH ☕</div>
 
-        <div class="line"></div>
+        <div class="footer-sub">Semoga harimu menyenangkan!</div>
 
-        <p>Terima Kasih ☕</p>
+        <div class="footer-sub">Sampai jumpa kembali di FYNCOFFEE.</div>
 
-        <p>Semoga Harimu Menyenangkan</p>
-
-        <p>Barang yang sudah dibeli</p>
-
-        <p>tidak dapat dikembalikan.</p>
+        <div class="footer-warning">
+          Barang yang sudah dibeli tidak dapat dikembalikan.
+        </div>
       </div>
     </div>
 
-    <button onclick="window.print()">PRINT STRUK</button>
+    <!-- =====================================================
+         ACTION BUTTON
+    ===================================================== -->
+    <div class="actions">
+      <button type="button" id="btnPrint" onclick="cetakStruk()">
+        🖨 PRINT STRUK
+      </button>
 
-    <button onclick="downloadPDF()">DOWNLOAD PDF</button>
+      <button type="button" id="btnPdf" class="btn-pdf" onclick="downloadPDF()">
+        ↓ DOWNLOAD PDF
+      </button>
 
-    <!-- PDF LIBRARY -->
+      <button type="button" class="btn-ghost" onclick="window.close()">
+        ✕ TUTUP
+      </button>
+    </div>
 
+    <!-- =====================================================
+         PDF LIBRARY
+    ===================================================== -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <!-- DATA STRUK -->
-
+    <!-- =====================================================
+         DATA STRUK (dari struk.js)
+    ===================================================== -->
     <script src="struk.js"></script>
 
+    <!-- =====================================================
+         CONTROLLER
+    ===================================================== -->
     <script>
+      /* =====================================================
+         CETAK
+      ===================================================== */
+      function cetakStruk() {
+        /* Cek apakah data sudah terisi */
+        const invoice = document.getElementById("id")?.textContent?.trim();
+
+        if (!invoice || invoice === "-") {
+          const konfirmasi = confirm(
+            "Data transaksi belum dimuat. Tetap cetak?",
+          );
+          if (!konfirmasi) return;
+        }
+
+        window.print();
+      }
+
+      /* =====================================================
+         DOWNLOAD PDF
+      ===================================================== */
       async function downloadPDF() {
+        const btn = document.getElementById("btnPdf");
+
         try {
           const area = document.getElementById("struk");
 
+          if (!area) {
+            alert("Area struk tidak ditemukan.");
+            return;
+          }
+
+          /* Cek data */
+          const invoice = document.getElementById("id")?.textContent?.trim();
+
+          if (!invoice || invoice === "-") {
+            alert("Data transaksi belum dimuat. Tidak bisa membuat PDF.");
+            return;
+          }
+
+          /* Nonaktifkan tombol selama proses */
+          if (btn) {
+            btn.disabled = true;
+            btn.textContent = "⏳ Membuat PDF...";
+          }
+
+          /* ==============================================
+             Render struk ke canvas (kualitas tinggi)
+          ============================================== */
           const canvas = await html2canvas(area, {
             scale: 4,
-
             backgroundColor: "#ffffff",
-
             useCORS: true,
+            logging: false,
+            imageTimeout: 15000,
+            allowTaint: false,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: area.scrollWidth,
+            windowHeight: area.scrollHeight,
           });
 
           const imgData = canvas.toDataURL("image/png");
 
+          /* ==============================================
+             jsPDF — thermal 58mm
+             Kertas : 58mm
+             Konten : 48mm
+             Margin : 5mm kiri & kanan, 2mm atas
+          ============================================== */
           const { jsPDF } = window.jspdf;
 
-          const width = 48;
+          const paperWidth = 58;
+          const contentWidth = 48;
+          const marginLeft = (paperWidth - contentWidth) / 2; // = 5
+          const marginTop = 2;
+          const marginBottom = 3;
 
-          const height = (canvas.height * width) / canvas.width;
+          const contentHeight = (canvas.height * contentWidth) / canvas.width;
+
+          const pdfHeight = contentHeight + marginTop + marginBottom;
 
           const pdf = new jsPDF({
             orientation: "portrait",
-
             unit: "mm",
-
-            format: [58, height + 4],
+            format: [paperWidth, pdfHeight],
+            compress: true,
           });
 
           pdf.addImage(
             imgData,
-
             "PNG",
-
-            5,
-
-            2,
-
-            width,
-
-            height,
+            marginLeft,
+            marginTop,
+            contentWidth,
+            contentHeight,
+            undefined,
+            "FAST",
           );
 
-          const nomor = document.getElementById("id").innerText;
+          /* ==============================================
+             Nama file
+          ============================================== */
+          let nomor =
+            document.getElementById("id")?.innerText?.trim() || "Tanpa-Invoice";
+
+          nomor = nomor.replace(/[^\w\-]/g, "-");
 
           pdf.save("Struk-" + nomor + ".pdf");
-        } catch (error) {
-          console.error(error);
 
-          alert("Download PDF gagal");
+          /* Kembalikan tombol */
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = "↓ DOWNLOAD PDF";
+          }
+        } catch (error) {
+          console.error("Download PDF gagal:", error);
+          alert("Download PDF gagal. Silakan coba lagi.");
+
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = "↓ DOWNLOAD PDF";
+          }
         }
       }
+
+      /* =====================================================
+         ESC = TUTUP (khusus window.open popup)
+      ===================================================== */
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          window.close();
+        }
+      });
+
+      /* =====================================================
+         SHORTCUT: CTRL+P untuk print, CTRL+S untuk PDF
+      ===================================================== */
+      document.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+          e.preventDefault();
+          downloadPDF();
+        }
+      });
     </script>
   </body>
 </html>
