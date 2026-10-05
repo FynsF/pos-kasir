@@ -1323,9 +1323,34 @@
       }
       .receipt-actions {
         display: grid;
-        grid-template-columns: 1fr 1.3fr;
+        grid-template-columns: 1fr 1fr 1.25fr;
         gap: 9px;
         margin-top: 16px;
+      }
+
+      .btn-download-pdf {
+        background: #f5f5f5;
+        color: #171717;
+        border-color: #d4d4d4;
+      }
+
+      .btn-download-pdf:hover:not(:disabled) {
+        background: #e5e5e5;
+        border-color: #171717;
+      }
+
+      .btn-download-pdf.loading {
+        pointer-events: none;
+      }
+
+      @media (max-width: 390px) {
+        .receipt-actions {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .receipt-actions .btn-new-trx {
+          grid-column: 1 / -1;
+        }
       }
       .receipt-actions.secondary-row {
         grid-template-columns: 1fr;
@@ -2238,8 +2263,18 @@
             type="button"
             class="btn-ghost"
             onclick="cetakStrukTerakhir()"
+            title="Cetak struk"
           >
             🖨 Cetak
+          </button>
+          <button
+            type="button"
+            class="btn-ghost btn-download-pdf"
+            id="btnDownloadPdf"
+            onclick="downloadStrukPDF()"
+            title="Download struk sebagai PDF"
+          >
+            ⬇️ PDF
           </button>
           <button
             type="button"
@@ -2302,6 +2337,20 @@
         </div>
       </div>
     </noscript>
+
+    <!-- ============ PDF EXPORT LIBRARIES ============ -->
+    <!--
+      jsPDF + html2canvas dipakai untuk membuat file PDF langsung di browser.
+      Tidak membutuhkan server tambahan dan tetap bekerja di Google Apps Script.
+    -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+      crossorigin="anonymous"
+    ></script>
 
     <!-- ============ INLINE HELPER SCRIPT ============ -->
     <script>
@@ -2502,6 +2551,242 @@
       }
 
       /* =====================================================
+         DOWNLOAD STRUK PDF
+         ===================================================== */
+
+      /**
+       * Mengubah teks menjadi nama file yang aman.
+       */
+      function sanitizeFileName(value) {
+        return (
+          String(value || "FYNCOFFEE")
+            .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
+            .replace(/\s+/g, "-")
+            .replace(/-+/g, "-")
+            .replace(/^-|-$/g, "")
+            .slice(0, 80) || "FYNCOFFEE"
+        );
+      }
+
+      /**
+       * Membuat nama file PDF berdasarkan data struk.
+       */
+      function getReceiptPdfFileName() {
+        const paper = document.querySelector("#receiptPreview .r-paper");
+        const text = paper ? paper.innerText || "" : "";
+
+        /* Cari nomor transaksi jika ada */
+        const trxMatch = text.match(
+          /(?:No\.?\s*(?:Transaksi|Trx)|Transaksi)\s*[:#-]?\s*([A-Za-z0-9._/-]+)/i,
+        );
+
+        const now = new Date();
+        const stamp =
+          now.getFullYear() +
+          String(now.getMonth() + 1).padStart(2, "0") +
+          String(now.getDate()).padStart(2, "0") +
+          "-" +
+          String(now.getHours()).padStart(2, "0") +
+          String(now.getMinutes()).padStart(2, "0");
+
+        return (
+          "FYNCOFFEE-" +
+          sanitizeFileName(trxMatch ? trxMatch[1] : "STRUK") +
+          "-" +
+          stamp +
+          ".pdf"
+        );
+      }
+
+      /**
+       * Download preview struk menjadi PDF ukuran thermal 58 mm.
+       *
+       * Catatan:
+       * - PDF dibuat dari #receiptPreview, bukan screenshot seluruh halaman.
+       * - Ukuran tinggi PDF mengikuti tinggi struk sehingga minim ruang kosong.
+       * - Jika library PDF gagal dimuat, pengguna diberi fallback ke dialog cetak.
+       */
+      async function downloadStrukPDF() {
+        const button = document.getElementById("btnDownloadPdf");
+        const paper = document.querySelector("#receiptPreview .r-paper");
+
+        if (!paper) {
+          if (typeof toast === "function") {
+            toast("Preview struk belum tersedia.", "error");
+          } else {
+            alert("Preview struk belum tersedia.");
+          }
+          return;
+        }
+
+        if (!window.html2canvas || !window.jspdf || !window.jspdf.jsPDF) {
+          if (typeof toast === "function") {
+            toast(
+              "Komponen PDF belum siap. Silakan tunggu sebentar lalu coba lagi.",
+              "error",
+            );
+          } else {
+            alert("Komponen PDF belum siap. Silakan coba lagi.");
+          }
+          return;
+        }
+
+        const originalText = button ? button.innerHTML : "";
+        if (button) {
+          button.disabled = true;
+          button.classList.add("loading");
+          button.innerHTML = "⏳ Membuat...";
+        }
+
+        try {
+          /*
+           * Clone agar proses capture tidak mengubah tampilan struk asli.
+           * Clone dipasang di luar viewport dengan ukuran 58mm yang stabil.
+           */
+          const clone = paper.cloneNode(true);
+
+          const exportHost = document.createElement("div");
+          exportHost.id = "__fyncoffee_pdf_export_host";
+          exportHost.style.cssText = [
+            "position:fixed",
+            "left:-100000px",
+            "top:0",
+            "width:58mm",
+            "background:#fff",
+            "padding:0",
+            "margin:0",
+            "z-index:-1",
+            "pointer-events:none",
+          ].join(";");
+
+          clone.style.cssText = [
+            "width:58mm",
+            "max-width:none",
+            "min-height:0",
+            "height:auto",
+            "margin:0",
+            "border:0",
+            "border-radius:0",
+            "box-shadow:none",
+            "padding:3mm",
+            "background:#fff",
+            "color:#000",
+            "font-family:'Courier New',ui-monospace,monospace",
+            "font-size:11px",
+            "line-height:1.45",
+          ].join(";");
+
+          /* Hilangkan scrollbar / batas preview dari modal */
+          clone.style.maxHeight = "none";
+          clone.style.overflow = "visible";
+
+          exportHost.appendChild(clone);
+          document.body.appendChild(exportHost);
+
+          /*
+           * Tunggu font/layout selesai sebelum screenshot.
+           */
+          if (document.fonts && document.fonts.ready) {
+            try {
+              await document.fonts.ready;
+            } catch (e) {}
+          }
+
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+
+          const canvas = await window.html2canvas(clone, {
+            scale: Math.max(2, Math.min(4, window.devicePixelRatio || 2)),
+            backgroundColor: "#ffffff",
+            useCORS: true,
+            allowTaint: false,
+            logging: false,
+            imageTimeout: 10000,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: clone.scrollWidth || 220,
+            windowHeight: clone.scrollHeight || 600,
+          });
+
+          /*
+           * Lebar thermal = 58mm.
+           * Tinggi mengikuti rasio canvas agar tidak ada halaman kosong besar.
+           */
+          const pdfWidthMm = 58;
+          const pdfHeightMm = Math.max(
+            20,
+            (canvas.height / canvas.width) * pdfWidthMm,
+          );
+
+          const { jsPDF } = window.jspdf;
+
+          const pdf = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: [pdfWidthMm, pdfHeightMm],
+            compress: true,
+            putOnlyUsedFonts: true,
+          });
+
+          const imageData = canvas.toDataURL("image/png", 1.0);
+
+          pdf.addImage(
+            imageData,
+            "PNG",
+            0,
+            0,
+            pdfWidthMm,
+            pdfHeightMm,
+            undefined,
+            "FAST",
+          );
+
+          pdf.save(getReceiptPdfFileName());
+
+          if (typeof toast === "function") {
+            toast("Struk PDF berhasil di-download ✓", "success");
+          }
+        } catch (error) {
+          console.error("[FYNCOFFEE] Gagal membuat PDF:", error);
+
+          if (typeof toast === "function") {
+            toast(
+              "Gagal membuat PDF. Silakan coba lagi atau gunakan Cetak.",
+              "error",
+            );
+          } else {
+            alert("Gagal membuat PDF. Silakan coba lagi.");
+          }
+        } finally {
+          const host = document.getElementById("__fyncoffee_pdf_export_host");
+          if (host) host.remove();
+
+          if (button) {
+            button.disabled = false;
+            button.classList.remove("loading");
+            button.innerHTML = originalText || "⬇️ PDF";
+          }
+        }
+      }
+
+      /*
+       * Keyboard shortcut:
+       * Ctrl + Shift + P = Download PDF ketika struk sedang terbuka.
+       */
+      document.addEventListener("keydown", function (event) {
+        if (
+          event.ctrlKey &&
+          event.shiftKey &&
+          String(event.key).toLowerCase() === "p"
+        ) {
+          const receiptModal = document.getElementById("receiptModal");
+          if (receiptModal && receiptModal.classList.contains("active")) {
+            event.preventDefault();
+            downloadStrukPDF();
+          }
+        }
+      });
+
+      /* =====================================================
          REFRESH PRODUK (dengan animasi spin)
          ===================================================== */
       function refreshProduk() {
@@ -2589,7 +2874,7 @@
         "background:#111;color:#fff;padding:8px 12px;border-radius:6px;font-weight:900;font-size:13px;",
       );
       console.log(
-        "%c Index V4 FINAL ",
+        "%c Index V5 — PDF READY ",
         "background:#166534;color:#fff;padding:3px 8px;border-radius:4px;font-size:11px;",
       );
     </script>
