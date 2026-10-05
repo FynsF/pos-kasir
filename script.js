@@ -12,8 +12,8 @@ const API =
 // KONFIGURASI TOKO (dipakai di struk)
 // ============================================================
 const NAMA_TOKO = "FYNCOFFEE";
-const ALAMAT_TOKO = "Jl. Contoh No. 123, Jakarta";
-const TELP_TOKO = "0812-3456-7890";
+const ALAMAT_TOKO = "Jl. Kesawan, Sumatera Utara, Indonesia";
+const TELP_TOKO = "0812-6944-1924";
 const FOOTER_STRUK = "Terima kasih atas kunjungan Anda";
 const CATATAN_STRUK = "Barang yang sudah dibeli tidak dapat ditukar";
 
