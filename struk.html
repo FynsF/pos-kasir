@@ -17,101 +17,139 @@
       }
 
       html {
-        width: 58mm;
-        min-width: 58mm;
-        background: #f2f2f2;
+        background: #d9d9d9;
       }
 
       body {
-        width: 58mm;
-        min-width: 58mm;
-        margin: 0 auto;
-        padding: 0;
-        background: #f2f2f2;
+        min-height: 100vh;
+        margin: 0;
+        padding: 24px 0;
+        background: radial-gradient(
+          circle at 20% 10%,
+          #e8e8e8 0%,
+          #cfcfcf 100%
+        );
         color: #111;
-        font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
-
-        font-size: 9px;
-        line-height: 1.25;
-
+        font-family: "Courier New", Courier, ui-monospace, monospace;
+        font-size: 11px;
+        line-height: 1.35;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
 
       /* =====================================================
-         STRUK
+         KERTAS STRUK
       ===================================================== */
       #struk {
-        width: 48mm;
-        margin: 0 auto;
-        padding: 4mm 0 5mm;
-
-        background: #fff;
-
-        /* supaya render PDF lebih tajam */
+        position: relative;
+        width: 58mm;
+        padding: 6mm 5mm 8mm;
+        background: #fffdf7;
+        color: #111;
+        font-size: 10.5px;
+        line-height: 1.4;
+        box-shadow:
+          0 1px 0 rgba(0, 0, 0, 0.05),
+          0 12px 30px rgba(0, 0, 0, 0.18);
+        font-family: "Courier New", Courier, ui-monospace, monospace;
         image-rendering: -webkit-optimize-contrast;
-        image-rendering: crisp-edges;
+      }
+
+      /* Efek tepi kertas thermal (gerigi atas & bawah) */
+      #struk::before,
+      #struk::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background-image:
+          linear-gradient(45deg, transparent 50%, #cfcfcf 50%),
+          linear-gradient(-45deg, transparent 50%, #cfcfcf 50%);
+        background-size: 6px 6px;
+        background-position:
+          0 0,
+          3px 0;
+        background-repeat: repeat-x;
+        pointer-events: none;
+      }
+
+      #struk::before {
+        top: -3px;
+      }
+
+      #struk::after {
+        bottom: -3px;
+        transform: rotate(180deg);
       }
 
       /* =====================================================
-         HEADER
+         HEADER TOKO
       ===================================================== */
       .header {
         text-align: center;
+        padding-bottom: 4px;
       }
 
       .logo {
-        width: 43px;
-        height: 43px;
-
+        width: 46px;
+        height: 46px;
         display: block;
-
-        margin: 0 auto 3px;
-
+        margin: 0 auto 4px;
         object-fit: contain;
       }
 
       .brand {
-        font-size: 15px;
+        font-size: 17px;
         font-weight: 900;
-        letter-spacing: 1.5px;
-
-        margin: 1px 0 2px;
+        letter-spacing: 3px;
+        margin: 2px 0 1px;
+        font-family: "Courier New", monospace;
       }
 
       .tagline {
-        font-size: 8px;
-        letter-spacing: 0.7px;
-
-        margin-bottom: 3px;
+        font-size: 8.5px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        color: #333;
       }
 
-      .address {
-        font-size: 8.5px;
-        line-height: 1.35;
+      .store-info {
+        font-size: 9px;
+        line-height: 1.5;
+        color: #222;
+      }
+
+      .store-info strong {
+        font-weight: 700;
+        letter-spacing: 0.3px;
       }
 
       /* =====================================================
-         GARIS
+         GARIS PEMISAH
       ===================================================== */
       .line {
-        width: 100%;
+        border-top: 1px dashed #333;
+        margin: 7px 0;
+        height: 0;
+      }
 
-        border-top: 1px dashed #222;
-
-        margin: 6px 0;
+      .line-double {
+        border-top: 3px double #111;
+        margin: 7px 0;
       }
 
       .line-solid {
-        width: 100%;
-
         border-top: 1px solid #111;
-
         margin: 6px 0;
       }
 
       /* =====================================================
-         INFO TRANSAKSI
+         INFO TRANSAKSI (grid 2 kolom)
       ===================================================== */
       .info-table {
         width: 100%;
@@ -121,25 +159,25 @@
 
       .info-table td {
         padding: 1.5px 0;
-
         vertical-align: top;
-
-        font-size: 8.5px;
+        font-size: 9.5px;
+        line-height: 1.45;
       }
 
       .info-label {
-        width: 30%;
-        color: #555;
+        width: 32%;
+        color: #444;
+        text-transform: uppercase;
+        font-size: 8.5px;
+        letter-spacing: 0.4px;
       }
 
       .info-value {
-        width: 70%;
-
+        width: 68%;
         text-align: right;
-
-        font-weight: 600;
-
+        font-weight: 700;
         word-break: break-word;
+        color: #000;
       }
 
       /* =====================================================
@@ -147,9 +185,7 @@
       ===================================================== */
       .items-table {
         width: 100%;
-
         border-collapse: collapse;
-
         table-layout: fixed;
       }
 
@@ -159,64 +195,55 @@
       }
 
       .items-table th {
-        padding: 1px 0 3px;
-
-        font-size: 8px;
-
-        font-weight: 700;
-
+        padding: 2px 0 4px;
+        font-size: 8.5px;
+        font-weight: 800;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #111;
       }
 
       .items-table td {
-        padding: 2px 0;
-
-        font-size: 8.5px;
-
-        line-height: 1.25;
+        padding: 3px 0;
+        font-size: 9.5px;
+        line-height: 1.4;
+        border-bottom: 1px dotted #bbb;
       }
 
-      /* =====================================================
-         COLUMN
-      ===================================================== */
+      .items-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      /* KOLOM */
       .col-item {
-        width: 53%;
-
+        width: 52%;
         text-align: left;
-
-        padding-right: 2px !important;
+        padding-right: 3px !important;
       }
 
       .col-qty {
-        width: 12%;
-
+        width: 13%;
         text-align: center;
       }
 
       .col-price {
         width: 35%;
-
         text-align: right;
       }
 
-      /* =====================================================
-         NAMA PRODUK
-      ===================================================== */
       .product-name {
-        font-weight: 600;
-
+        font-weight: 700;
         word-break: break-word;
         overflow-wrap: anywhere;
+        letter-spacing: 0.2px;
       }
 
       .product-price {
         display: block;
-
         color: #555;
-
-        font-size: 7.5px;
-
+        font-size: 8.5px;
         margin-top: 1px;
+        font-weight: 400;
       }
 
       /* =====================================================
@@ -224,40 +251,43 @@
       ===================================================== */
       .summary {
         width: 100%;
-
         border-collapse: collapse;
       }
 
       .summary td {
         padding: 2px 0;
-
-        font-size: 8.5px;
-
+        font-size: 9.5px;
         vertical-align: middle;
       }
 
       .summary .label {
-        width: 48%;
+        width: 55%;
+        color: #333;
       }
 
       .summary .value {
-        width: 52%;
-
+        width: 45%;
         text-align: right;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
 
-        font-weight: 600;
+      .summary tr.subtotal-row td {
+        padding-top: 3px;
+      }
+
+      .summary tr.discount-row .value {
+        color: #b91c1c;
       }
 
       /* =====================================================
-         TOTAL
+         GRAND TOTAL
       ===================================================== */
       .grand-total {
-        margin: 4px 0;
-
-        padding: 5px 0;
-
-        border-top: 1px solid #111;
-        border-bottom: 1px solid #111;
+        margin: 6px 0 4px;
+        padding: 6px 0;
+        border-top: 2px solid #111;
+        border-bottom: 2px solid #111;
       }
 
       .grand-total table {
@@ -266,121 +296,113 @@
       }
 
       .grand-total td {
-        font-size: 11px;
-
+        font-size: 13px;
         font-weight: 900;
-
         padding: 1px 0;
+        letter-spacing: 0.5px;
       }
 
       .grand-total .total-label {
-        width: 35%;
+        width: 40%;
+        text-transform: uppercase;
       }
 
       .grand-total .total-value {
-        width: 65%;
-
+        width: 60%;
         text-align: right;
-
-        font-size: 12px;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
       }
 
       /* =====================================================
          PAYMENT
       ===================================================== */
       .payment-title {
-        font-size: 8px;
-
+        font-size: 8.5px;
         font-weight: 800;
-
         text-transform: uppercase;
-
-        letter-spacing: 0.5px;
-
-        margin-bottom: 2px;
+        letter-spacing: 1px;
+        margin-bottom: 3px;
+        color: #333;
       }
 
       .payment-table {
         width: 100%;
-
         border-collapse: collapse;
       }
 
       .payment-table td {
         padding: 2px 0;
-
-        font-size: 8.5px;
+        font-size: 9.5px;
       }
 
       .payment-label {
-        width: 48%;
+        width: 45%;
+        color: #333;
       }
 
       .payment-value {
-        width: 52%;
-
+        width: 55%;
         text-align: right;
-
         font-weight: 700;
+        font-variant-numeric: tabular-nums;
       }
 
-      /* =====================================================
-         PAYMENT BADGE
-      ===================================================== */
       .payment-method {
         display: inline-block;
-
-        padding: 2px 5px;
-
-        border: 1px solid #111;
-
-        border-radius: 3px;
-
-        font-size: 7px;
-
-        font-weight: 800;
-
+        padding: 2px 7px;
+        border: 1.5px solid #111;
+        border-radius: 2px;
+        font-size: 8.5px;
+        font-weight: 900;
         text-transform: uppercase;
-
-        letter-spacing: 0.4px;
+        letter-spacing: 0.8px;
+        background: #111;
+        color: #fff;
       }
 
-      /* Status badge (Lunas / Pending) */
+      /* Status badge */
       .status-badge {
         display: inline-block;
-
-        padding: 2px 6px;
-
-        border-radius: 3px;
-
-        font-size: 7px;
-
-        font-weight: 800;
-
+        padding: 2px 8px;
+        border-radius: 2px;
+        font-size: 8.5px;
+        font-weight: 900;
         text-transform: uppercase;
-
-        letter-spacing: 0.4px;
-
+        letter-spacing: 0.8px;
         background: #111;
         color: #fff;
       }
 
       .status-badge.lunas {
-        background: #111;
+        background: #15803d;
         color: #fff;
       }
 
       .status-badge.pending {
-        background: #fff;
-        color: #111;
-        border: 1px solid #111;
+        background: #d97706;
+        color: #fff;
       }
 
       .status-badge.batal {
         background: #fff;
-        color: #111;
-        border: 1px dashed #111;
+        color: #b91c1c;
+        border: 1.5px dashed #b91c1c;
         text-decoration: line-through;
+      }
+
+      /* =====================================================
+         QRIS NOTE
+      ===================================================== */
+      .qris-note {
+        text-align: center;
+        margin-top: 6px;
+        padding: 4px 6px;
+        border: 1px dashed #333;
+        font-size: 8.5px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
       }
 
       /* =====================================================
@@ -388,167 +410,178 @@
       ===================================================== */
       .footer {
         text-align: center;
-
-        margin-top: 7px;
-
-        font-size: 8px;
-
-        line-height: 1.4;
+        margin-top: 8px;
+        font-size: 9px;
+        line-height: 1.55;
       }
 
       .footer-main {
-        font-size: 9px;
-
-        font-weight: 800;
-
-        margin-bottom: 2px;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 1.5px;
+        margin-bottom: 3px;
       }
 
       .footer-sub {
-        color: #444;
-
-        font-size: 7.5px;
+        color: #333;
+        font-size: 8.5px;
       }
 
       .footer-warning {
-        margin-top: 5px;
-
-        font-size: 7px;
-
-        line-height: 1.3;
-      }
-
-      /* =====================================================
-         QRIS INFO
-      ===================================================== */
-      .qris-note {
-        text-align: center;
-
-        margin-top: 5px;
-
+        margin-top: 6px;
         font-size: 7.5px;
+        line-height: 1.4;
+        color: #444;
+        font-style: italic;
+      }
 
-        font-weight: 600;
+      /* Nomor invoice besar di bawah */
+      .invoice-footer {
+        margin-top: 8px;
+        text-align: center;
+        font-family: "Courier New", monospace;
+        font-size: 9px;
+        letter-spacing: 2px;
+        color: #222;
+      }
+
+      /* Barcode-ish */
+      .barcode {
+        margin: 6px auto 2px;
+        height: 32px;
+        width: 90%;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 1px;
+      }
+
+      .barcode span {
+        display: inline-block;
+        width: 1.5px;
+        background: #000;
       }
 
       /* =====================================================
-         EMPTY / LOADING STATE
+         STATE (loading/empty)
       ===================================================== */
       .state {
         padding: 30px 10px;
-
         text-align: center;
-
-        font-size: 9px;
-
+        font-size: 10px;
         color: #555;
       }
 
       .state strong {
         display: block;
-
         margin-bottom: 4px;
-
         color: #111;
-
-        font-size: 11px;
+        font-size: 12px;
       }
 
       .state .icon {
         font-size: 32px;
-
         margin-bottom: 8px;
       }
 
       /* =====================================================
-         PRINT BUTTON
+         ACTIONS (tombol)
       ===================================================== */
       .actions {
         width: 100%;
-
-        padding: 18px 10px 25px;
-
-        background: #f2f2f2;
-
+        max-width: 360px;
+        margin-top: 22px;
+        padding: 0 16px;
         text-align: center;
       }
 
-      button {
-        width: 220px;
-
-        display: block;
-
-        margin: 8px auto;
-
-        padding: 11px 14px;
-
-        border: none;
-
-        border-radius: 8px;
-
-        background: #111;
-
-        color: #fff;
-
-        font-size: 12px;
-
+      .actions-title {
+        font-size: 11px;
         font-weight: 700;
+        color: #444;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
 
+      .actions-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        padding: 12px 14px;
+        border: none;
+        border-radius: 10px;
+        background: #111;
+        color: #fff;
+        font-family: "Inter", system-ui, sans-serif;
+        font-size: 12px;
+        font-weight: 700;
         cursor: pointer;
-
         transition:
           transform 0.15s ease,
-          opacity 0.15s ease;
+          opacity 0.15s ease,
+          box-shadow 0.15s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
       }
 
       button:hover {
         transform: translateY(-1px);
-
-        opacity: 0.9;
+        opacity: 0.92;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
       }
 
       button:active {
-        transform: scale(0.98);
+        transform: scale(0.97);
       }
 
       button:disabled {
         opacity: 0.5;
-
         cursor: not-allowed;
-
         transform: none;
+        box-shadow: none;
       }
 
       .btn-pdf {
-        background: #555;
+        background: #0066cc;
+        grid-column: 1 / -1;
       }
 
       .btn-ghost {
         background: #fff;
         color: #111;
-        border: 1px solid #d1d5db;
+        border: 1.5px solid #d1d5db;
+        grid-column: 1 / -1;
+        box-shadow: none;
+      }
+
+      .btn-ghost:hover {
+        background: #f4f4f5;
+        border-color: #9ca3af;
+        box-shadow: none;
       }
 
       /* =====================================================
          MOBILE PREVIEW
       ===================================================== */
       @media screen and (max-width: 480px) {
-        html,
         body {
-          width: 100%;
-          min-width: 0;
-        }
-
-        body {
-          background: #e9e9e9;
+          padding: 14px 0;
         }
 
         #struk {
-          width: 48mm;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
 
-          margin: 15px auto;
-
-          box-shadow: 0 3px 15px rgba(0, 0, 0, 0.12);
+        .actions {
+          padding: 0 12px;
         }
       }
 
@@ -558,34 +591,32 @@
       @media print {
         @page {
           size: 58mm auto;
-
           margin: 0;
         }
 
         html,
         body {
           width: 58mm;
-          min-width: 58mm;
-
           margin: 0;
           padding: 0;
-
           background: #fff;
+          display: block;
         }
 
         #struk {
-          width: 48mm;
-
-          margin: 0 auto;
-
-          padding-top: 2mm;
-          padding-bottom: 3mm;
-
+          width: 58mm;
+          margin: 0;
+          padding: 4mm 5mm 6mm;
           box-shadow: none;
+          background: #fff;
         }
 
-        .actions,
-        button {
+        #struk::before,
+        #struk::after {
+          display: none;
+        }
+
+        .actions {
           display: none !important;
         }
       }
@@ -618,11 +649,13 @@
 
         <div class="brand">FYNCOFFEE</div>
 
-        <div class="tagline">COFFEE • MILK • GOOD MOOD</div>
+        <div class="tagline">Coffee · Milk · Good Mood</div>
 
-        <div class="address">Jl. Kesawan</div>
-
-        <div class="address">Telp : 081269441924</div>
+        <div class="store-info">
+          <div>Jl. Kesawan No. 12, Medan</div>
+          <div>Telp / WA: <strong>0812-6944-1924</strong></div>
+          <div>IG: @fyncoffee.id</div>
+        </div>
       </div>
 
       <div class="line"></div>
@@ -631,25 +664,16 @@
       <table class="info-table">
         <tr>
           <td class="info-label">Invoice</td>
-          <td class="info-value">
-            <span id="id">-</span>
-          </td>
+          <td class="info-value"><span id="id">-</span></td>
         </tr>
-
         <tr>
           <td class="info-label">Tanggal</td>
-          <td class="info-value">
-            <span id="tanggal">-</span>
-          </td>
+          <td class="info-value"><span id="tanggal">-</span></td>
         </tr>
-
         <tr>
           <td class="info-label">Kasir</td>
-          <td class="info-value">
-            <span id="kasir">Admin</span>
-          </td>
+          <td class="info-value"><span id="kasir">Admin</span></td>
         </tr>
-
         <tr>
           <td class="info-label">Status</td>
           <td class="info-value">
@@ -658,7 +682,7 @@
         </tr>
       </table>
 
-      <div class="line"></div>
+      <div class="line-double"></div>
 
       <!-- ITEM -->
       <table class="items-table">
@@ -669,7 +693,6 @@
             <th class="col-price">Jumlah</th>
           </tr>
         </thead>
-
         <tbody id="detail">
           <!-- DATA ITEM DARI STRUK.JS -->
         </tbody>
@@ -679,18 +702,16 @@
 
       <!-- SUMMARY -->
       <table class="summary">
-        <tr>
+        <tr class="subtotal-row">
           <td class="label">Subtotal</td>
           <td class="value">Rp <span id="subtotal">0</span></td>
         </tr>
-
-        <tr>
+        <tr class="discount-row">
           <td class="label">Diskon</td>
-          <td class="value">Rp <span id="diskon">0</span></td>
+          <td class="value">- Rp <span id="diskon">0</span></td>
         </tr>
-
         <tr>
-          <td class="label">Pajak</td>
+          <td class="label">Pajak / Service</td>
           <td class="value">Rp <span id="pajak">0</span></td>
         </tr>
       </table>
@@ -706,7 +727,7 @@
       </div>
 
       <!-- PAYMENT -->
-      <div class="payment-title">Pembayaran</div>
+      <div class="payment-title">— Pembayaran —</div>
 
       <table class="payment-table">
         <tr>
@@ -715,32 +736,34 @@
             <span class="payment-method" id="metode">-</span>
           </td>
         </tr>
-
         <tr>
           <td class="payment-label">Bayar</td>
           <td class="payment-value">Rp <span id="bayar">0</span></td>
         </tr>
-
         <tr>
           <td class="payment-label">Kembali</td>
           <td class="payment-value">Rp <span id="kembali">0</span></td>
         </tr>
       </table>
 
-      <!-- QRIS NOTE (hanya muncul jika metode QRIS) -->
+      <!-- QRIS NOTE -->
       <div class="qris-note" id="qrisNote" style="display: none">
-        ✓ Pembayaran QRIS terverifikasi
+        ✓ Pembayaran QRIS Terverifikasi
       </div>
 
       <div class="line"></div>
 
       <!-- FOOTER -->
       <div class="footer">
-        <div class="footer-main">TERIMA KASIH ☕</div>
-
+        <div class="footer-main">★ TERIMA KASIH ★</div>
         <div class="footer-sub">Semoga harimu menyenangkan!</div>
+        <div class="footer-sub">Sampai jumpa kembali di FYNCOFFEE</div>
 
-        <div class="footer-sub">Sampai jumpa kembali di FYNCOFFEE.</div>
+        <div class="barcode" id="barcode" aria-hidden="true"></div>
+
+        <div class="invoice-footer">
+          <span id="invoiceFooter">-</span>
+        </div>
 
         <div class="footer-warning">
           Barang yang sudah dibeli tidak dapat dikembalikan.
@@ -752,17 +775,26 @@
          ACTION BUTTON
     ===================================================== -->
     <div class="actions">
-      <button type="button" id="btnPrint" onclick="cetakStruk()">
-        🖨 PRINT STRUK
-      </button>
+      <div class="actions-title">Aksi Struk</div>
 
-      <button type="button" id="btnPdf" class="btn-pdf" onclick="downloadPDF()">
-        ↓ DOWNLOAD PDF
-      </button>
+      <div class="actions-grid">
+        <button type="button" id="btnPrint" onclick="cetakStruk()">
+          🖨 Print
+        </button>
 
-      <button type="button" class="btn-ghost" onclick="window.close()">
-        ✕ TUTUP
-      </button>
+        <button
+          type="button"
+          id="btnPdf"
+          class="btn-pdf"
+          onclick="downloadPDF()"
+        >
+          ↓ Download PDF
+        </button>
+
+        <button type="button" class="btn-ghost" onclick="window.close()">
+          ✕ Tutup
+        </button>
+      </div>
     </div>
 
     <!-- =====================================================
@@ -781,10 +813,81 @@
     ===================================================== -->
     <script>
       /* =====================================================
+         FORMAT ANGKA (jika struk.js tidak menyediakannya)
+      ===================================================== */
+      function formatRupiah(angka) {
+        const n = Number(String(angka).replace(/[^\d]/g, "")) || 0;
+        return n.toLocaleString("id-ID");
+      }
+
+      /* =====================================================
+         BIKIN BARCODE VISUAL (dekoratif)
+      ===================================================== */
+      function renderBarcode() {
+        const el = document.getElementById("barcode");
+        if (!el) return;
+
+        el.innerHTML = "";
+        const seed = (
+          document.getElementById("id")?.textContent || "FYN"
+        ).toString();
+
+        // Barcode dekoratif — pola tetap + variasi dari hash invoice
+        let hash = 0;
+        for (let i = 0; i < seed.length; i++) {
+          hash = (hash << 5) - hash + seed.charCodeAt(i);
+          hash |= 0;
+        }
+
+        const bars = 55;
+        for (let i = 0; i < bars; i++) {
+          const span = document.createElement("span");
+          const h = 18 + ((Math.abs(hash) >> (i % 12)) % 15);
+          const w = (Math.abs(hash) >> (i % 7)) % 3 === 0 ? 2.4 : 1.4;
+          span.style.height = h + "px";
+          span.style.width = w + "px";
+          el.appendChild(span);
+        }
+      }
+
+      /* =====================================================
+         SINKRON NOMOR INVOICE KE FOOTER
+      ===================================================== */
+      function syncInvoiceFooter() {
+        const inv = document.getElementById("id")?.textContent?.trim() || "-";
+        const el = document.getElementById("invoiceFooter");
+        if (el) el.textContent = inv !== "-" ? "NO. " + inv : "-";
+      }
+
+      /* =====================================================
+         OBSERVE PERUBAHAN DATA DARI STRUK.JS
+      ===================================================== */
+      (function observeReceipt() {
+        const target = document.getElementById("struk");
+        if (!target || !("MutationObserver" in window)) return;
+
+        const obs = new MutationObserver(() => {
+          renderBarcode();
+          syncInvoiceFooter();
+        });
+
+        obs.observe(target, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+
+        // initial
+        setTimeout(() => {
+          renderBarcode();
+          syncInvoiceFooter();
+        }, 400);
+      })();
+
+      /* =====================================================
          CETAK
       ===================================================== */
       function cetakStruk() {
-        /* Cek apakah data sudah terisi */
         const invoice = document.getElementById("id")?.textContent?.trim();
 
         if (!invoice || invoice === "-") {
@@ -811,7 +914,6 @@
             return;
           }
 
-          /* Cek data */
           const invoice = document.getElementById("id")?.textContent?.trim();
 
           if (!invoice || invoice === "-") {
@@ -819,15 +921,15 @@
             return;
           }
 
-          /* Nonaktifkan tombol selama proses */
           if (btn) {
             btn.disabled = true;
             btn.textContent = "⏳ Membuat PDF...";
           }
 
-          /* ==============================================
-             Render struk ke canvas (kualitas tinggi)
-          ============================================== */
+          // Sembunyikan gerigi sementara untuk PDF
+          const before = area.style.getPropertyValue("--hide-teeth");
+          area.dataset.pdfMode = "1";
+
           const canvas = await html2canvas(area, {
             scale: 4,
             backgroundColor: "#ffffff",
@@ -841,19 +943,16 @@
             windowHeight: area.scrollHeight,
           });
 
+          delete area.dataset.pdfMode;
+          area.style.setProperty("--hide-teeth", before || "");
+
           const imgData = canvas.toDataURL("image/png");
 
-          /* ==============================================
-             jsPDF — thermal 58mm
-             Kertas : 58mm
-             Konten : 48mm
-             Margin : 5mm kiri & kanan, 2mm atas
-          ============================================== */
           const { jsPDF } = window.jspdf;
 
           const paperWidth = 58;
           const contentWidth = 48;
-          const marginLeft = (paperWidth - contentWidth) / 2; // = 5
+          const marginLeft = (paperWidth - contentWidth) / 2;
           const marginTop = 2;
           const marginBottom = 3;
 
@@ -879,9 +978,6 @@
             "FAST",
           );
 
-          /* ==============================================
-             Nama file
-          ============================================== */
           let nomor =
             document.getElementById("id")?.innerText?.trim() || "Tanpa-Invoice";
 
@@ -889,10 +985,9 @@
 
           pdf.save("Struk-" + nomor + ".pdf");
 
-          /* Kembalikan tombol */
           if (btn) {
             btn.disabled = false;
-            btn.textContent = "↓ DOWNLOAD PDF";
+            btn.innerHTML = "↓ Download PDF";
           }
         } catch (error) {
           console.error("Download PDF gagal:", error);
@@ -900,13 +995,13 @@
 
           if (btn) {
             btn.disabled = false;
-            btn.textContent = "↓ DOWNLOAD PDF";
+            btn.innerHTML = "↓ Download PDF";
           }
         }
       }
 
       /* =====================================================
-         ESC = TUTUP (khusus window.open popup)
+         ESC = TUTUP
       ===================================================== */
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
@@ -915,7 +1010,7 @@
       });
 
       /* =====================================================
-         SHORTCUT: CTRL+P untuk print, CTRL+S untuk PDF
+         SHORTCUT: CTRL+S = PDF
       ===================================================== */
       document.addEventListener("keydown", (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
@@ -923,6 +1018,37 @@
           downloadPDF();
         }
       });
+
+      /* =====================================================
+         AUTO FORMAT: pastikan semua angka punya pemisah ribuan
+         (kalau struk.js belum format, ini akan perbaiki)
+      ===================================================== */
+      (function autoFormatNumbers() {
+        const ids = [
+          "subtotal",
+          "diskon",
+          "pajak",
+          "total",
+          "bayar",
+          "kembali",
+        ];
+
+        const format = (el) => {
+          if (!el) return;
+          const raw = el.textContent.trim();
+          if (!raw || raw === "-") return;
+
+          const n = Number(raw.replace(/[^\d-]/g, ""));
+          if (!isNaN(n) && !raw.includes(".") && !raw.includes(",")) {
+            el.textContent = n.toLocaleString("id-ID");
+          }
+        };
+
+        const run = () =>
+          ids.forEach((id) => format(document.getElementById(id)));
+
+        setTimeout(run, 500);
+      })();
     </script>
   </body>
 </html>
