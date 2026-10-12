@@ -1,692 +1,501 @@
-/* =========================================================
-   FYNCOFFEE POS
-   STRUK.JS V2 - THERMAL RECEIPT SYSTEM
-   Kompatibel dengan Struk.html V2
-   ========================================================= */
-
-/* =========================================================
-   KONFIGURASI
-   ========================================================= */
-
-const AUTO_PRINT = false;
-// true  = otomatis membuka dialog print setelah data dimuat
-// false = tidak otomatis print
-
-/* =========================================================
-   AMBIL DATA TRANSAKSI
-   ========================================================= */
-
-const transaksiData = localStorage.getItem("transaksi");
-
-if (!transaksiData) {
-  tampilkanError(
-    "Transaksi Tidak Ditemukan",
-    "Silakan kembali ke halaman kasir dan lakukan transaksi terlebih dahulu.",
-  );
-
-  throw new Error("Data transaksi kosong.");
-}
-
-let transaksi;
-
-try {
-  transaksi = JSON.parse(transaksiData);
-} catch (error) {
-  console.error("Gagal membaca transaksi:", error);
-
-  tampilkanError(
-    "Data Transaksi Rusak",
-    "Data transaksi tidak dapat dibaca. Silakan ulangi transaksi.",
-  );
-
-  throw new Error("JSON transaksi tidak valid.");
-}
-
-/* =========================================================
-   VALIDASI DATA TRANSAKSI
-   ========================================================= */
-
-if (!transaksi || typeof transaksi !== "object") {
-  tampilkanError(
-    "Transaksi Tidak Valid",
-    "Data transaksi tidak dapat diproses.",
-  );
-
-  throw new Error("Object transaksi tidak valid.");
-}
-
-/* =========================================================
-   HEADER STRUK
-   ========================================================= */
-
-const invoice = transaksi.id || transaksi.invoice || generateInvoice();
-
-const tanggal = transaksi.tanggal || transaksi.waktu || formatTanggal();
-
-const kasir = transaksi.kasir || transaksi.nama_kasir || "Admin";
-
-setText("id", invoice);
-setText("tanggal", tanggal);
-setText("kasir", kasir);
-
-/* =========================================================
-   STATUS TRANSAKSI (BARU)
-   ========================================================= */
-
-const statusRaw = String(
-  transaksi.status || transaksi.status_transaksi || "Lunas",
-)
-  .trim()
-  .toLowerCase();
-
-/*
- * Mapping status ke class CSS:
- * - lunas   → .status-badge.lunas
- * - pending → .status-badge.pending
- * - batal   → .status-badge.batal
- */
-const statusMap = {
-  lunas: { label: "Lunas", class: "lunas" },
-  paid: { label: "Lunas", class: "lunas" },
-  success: { label: "Lunas", class: "lunas" },
-  berhasil: { label: "Lunas", class: "lunas" },
-
-  pending: { label: "Pending", class: "pending" },
-  menunggu: { label: "Pending", class: "pending" },
-  belum: { label: "Pending", class: "pending" },
-  "belum lunas": { label: "Pending", class: "pending" },
-  unpaid: { label: "Pending", class: "pending" },
-
-  batal: { label: "Batal", class: "batal" },
-  cancel: { label: "Batal", class: "batal" },
-  cancelled: { label: "Batal", class: "batal" },
-  canceled: { label: "Batal", class: "batal" },
-  void: { label: "Batal", class: "batal" },
-};
-
-const statusInfo = statusMap[statusRaw] || {
-  label: transaksi.status || "Lunas",
-  class: "lunas",
-};
-
-const statusEl = document.getElementById("status");
-
-if (statusEl) {
-  statusEl.textContent = statusInfo.label;
-  statusEl.className = "status-badge " + statusInfo.class;
-}
-
-/* =========================================================
-   METODE PEMBAYARAN
-   ========================================================= */
-
-const metodeRaw =
-  transaksi.metode ||
-  transaksi.metode_pembayaran ||
-  transaksi.paymentMethod ||
-  transaksi.payment_method ||
-  "QRIS";
-
-const metode = formatMetodePembayaran(metodeRaw);
-
-setText("metode", metode);
-
-/* =========================================================
-   QRIS NOTE (BARU)
-   Tampilkan hanya jika metode QRIS dan status Lunas
-   ========================================================= */
-
-const qrisNote = document.getElementById("qrisNote");
-
-if (qrisNote) {
-  const isQRIS = String(metodeRaw).trim().toUpperCase() === "QRIS";
-  const isLunas = statusInfo.class === "lunas";
-
-  if (isQRIS && isLunas) {
-    qrisNote.style.display = "block";
-    qrisNote.textContent = "✓ Pembayaran QRIS terverifikasi";
-  } else if (isQRIS && !isLunas) {
-    qrisNote.style.display = "block";
-    qrisNote.textContent = "⏳ Menunggu konfirmasi QRIS";
-  } else {
-    qrisNote.style.display = "none";
-  }
-}
-
-/* =========================================================
-   DETAIL PRODUK
-   ========================================================= */
-
-const detail = document.getElementById("detail");
-
-let subtotal = 0;
-
-if (detail) {
-  detail.innerHTML = "";
-}
-
-/* Ambil items dari berbagai kemungkinan key */
-const items = Array.isArray(transaksi.items)
-  ? transaksi.items
-  : Array.isArray(transaksi.detail)
-    ? transaksi.detail
-    : Array.isArray(transaksi.keranjang)
-      ? transaksi.keranjang
-      : [];
-
-if (items.length > 0) {
-  items.forEach((item) => {
-    if (!item) return;
-
-    /* -----------------------------------------------------
-       NAMA PRODUK
-    ----------------------------------------------------- */
-    const nama =
-      item.nama_produk ||
-      item.nama ||
-      item.name ||
-      item.product_name ||
-      "Produk";
-
-    /* -----------------------------------------------------
-       QTY
-    ----------------------------------------------------- */
-    const qty = toNumber(
-      item.qty ?? item.quantity ?? item.jumlah ?? item.amount ?? 0,
-    );
-
-    /* -----------------------------------------------------
-       HARGA SATUAN
-    ----------------------------------------------------- */
-    const harga = toNumber(
-      item.harga_jual ??
-        item.harga ??
-        item.price ??
-        item.harga_satuan ??
-        item.unit_price ??
-        0,
-    );
-
-    /* -----------------------------------------------------
-       SUBTOTAL PER ITEM
-       Pakai subtotal dari backend kalau tersedia
-    ----------------------------------------------------- */
-    const jumlah =
-      item.subtotal !== undefined && item.subtotal !== null
-        ? toNumber(item.subtotal)
-        : qty * harga;
-
-    subtotal += jumlah;
-
-    /* -----------------------------------------------------
-       RENDER BARIS
-    ----------------------------------------------------- */
-    if (detail) {
-      const row = document.createElement("tr");
-
-      row.innerHTML = `
-        <td class="col-item">
-          <div class="product-name">
-            ${escapeHTML(nama)}
-          </div>
-          <span class="product-price">
-            Rp ${formatRupiah(harga)} / item
-          </span>
-        </td>
-
-        <td class="col-qty">
-          ${formatQty(qty)}
-        </td>
-
-        <td class="col-price">
-          Rp ${formatRupiah(jumlah)}
-        </td>
-      `;
-
-      detail.appendChild(row);
-    }
-  });
-} else {
-  /* -----------------------------------------------------
-     TIDAK ADA PRODUK
-  ----------------------------------------------------- */
-  if (detail) {
-    detail.innerHTML = `
-      <tr>
-        <td
-          colspan="3"
-          style="
-            text-align:center;
-            padding:8px 0;
-            font-size:8px;
-            color:#666;
-          "
-        >
-          Tidak ada item transaksi
-        </td>
-      </tr>
-    `;
-  }
-}
-
-/* =========================================================
-   DISKON
-   ========================================================= */
-
-const diskon = Math.max(
-  0,
-  toNumber(transaksi.diskon ?? transaksi.discount ?? 0),
-);
-
-/* =========================================================
-   PAJAK
-   ========================================================= */
-
-const pajak = Math.max(
-  0,
-  toNumber(transaksi.pajak ?? transaksi.tax ?? transaksi.ppn ?? 0),
-);
-
-/* =========================================================
-   HITUNG TOTAL
-   ========================================================= */
-
-let total = subtotal - diskon + pajak;
-
-/*
- * Kalau backend sudah kirim total final,
- * pakai total dari backend.
- */
-if (
-  transaksi.total !== undefined &&
-  transaksi.total !== null &&
-  transaksi.total !== ""
-) {
-  total = toNumber(transaksi.total);
-}
-
-total = Math.max(0, total);
-
-/* =========================================================
-   TAMPILKAN SUMMARY
-   ========================================================= */
-
-setText("subtotal", formatRupiah(subtotal));
-setText("diskon", formatRupiah(diskon));
-setText("pajak", formatRupiah(pajak));
-setText("total", formatRupiah(total));
-
-/* =========================================================
-   PEMBAYARAN — BAYAR
-   ========================================================= */
-
-let bayar;
-
-if (
-  transaksi.bayar !== undefined &&
-  transaksi.bayar !== null &&
-  transaksi.bayar !== ""
-) {
-  bayar = toNumber(transaksi.bayar);
-} else if (
-  transaksi.uang_diterima !== undefined &&
-  transaksi.uang_diterima !== null
-) {
-  bayar = toNumber(transaksi.uang_diterima);
-} else if (
-  transaksi.uangDiterima !== undefined &&
-  transaksi.uangDiterima !== null
-) {
-  bayar = toNumber(transaksi.uangDiterima);
-} else {
-  /* QRIS / non-cash: anggap bayar = total */
-  bayar = total;
-}
-
-/* =========================================================
-   KEMBALIAN
-   ========================================================= */
-
-let kembali;
-
-if (
-  transaksi.kembali !== undefined &&
-  transaksi.kembali !== null &&
-  transaksi.kembali !== ""
-) {
-  kembali = toNumber(transaksi.kembali);
-} else if (transaksi.kembalian !== undefined && transaksi.kembalian !== null) {
-  kembali = toNumber(transaksi.kembalian);
-} else {
-  kembali = bayar - total;
-}
-
-kembali = Math.max(0, kembali);
-
-/* =========================================================
-   TAMPILKAN PEMBAYARAN
-   ========================================================= */
-
-setText("bayar", formatRupiah(bayar));
-setText("kembali", formatRupiah(kembali));
-
-/* =========================================================
-   SIMPAN DATA TERBARU (untuk cetak ulang)
-   ========================================================= */
-
-transaksi.id = invoice;
-transaksi.invoice = transaksi.invoice || invoice;
-transaksi.tanggal = tanggal;
-transaksi.kasir = kasir;
-transaksi.status = statusInfo.label;
-transaksi.metode = metodeRaw;
-transaksi.subtotal = subtotal;
-transaksi.diskon = diskon;
-transaksi.pajak = pajak;
-transaksi.total = total;
-transaksi.bayar = bayar;
-transaksi.kembali = kembali;
-transaksi.kembalian = kembali;
-transaksi.items = items;
-
-try {
-  localStorage.setItem("transaksi", JSON.stringify(transaksi));
-} catch (error) {
-  console.warn("Gagal menyimpan transaksi ke localStorage:", error);
-}
-
-/* =========================================================
-   UPDATE TITLE DOKUMEN (biar nama window / tab rapi)
-   ========================================================= */
-
-try {
-  document.title = "Struk " + invoice + " — FYNCOFFEE";
-} catch (e) {
-  /* ignore */
-}
-
-/* =========================================================
-   HELPER: SET TEXT
-   ========================================================= */
-
-function setText(id, value) {
-  const element = document.getElementById(id);
-
-  if (!element) return;
-
-  element.textContent = value ?? "";
-}
-
-/* =========================================================
-   FORMAT RUPIAH (tanpa "Rp", karena "Rp" ada di HTML)
-   ========================================================= */
-
-function formatRupiah(angka) {
-  const nilai = toNumber(angka);
-
-  return nilai.toLocaleString("id-ID", {
-    maximumFractionDigits: 0,
-  });
-}
-
-/* =========================================================
-   FORMAT QTY
-   ========================================================= */
-
-function formatQty(qty) {
-  const nilai = toNumber(qty);
-
-  if (Number.isInteger(nilai)) {
-    return String(nilai);
-  }
-
-  return nilai.toLocaleString("id-ID", {
-    maximumFractionDigits: 2,
-  });
-}
-
-/* =========================================================
-   TO NUMBER (parsing angka pintar)
-   Support: "Rp 15.000", "15,000", "15000", "15.000,50"
-   ========================================================= */
-
-function toNumber(value) {
-  if (value === null || value === undefined || value === "") {
-    return 0;
-  }
-
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? value : 0;
-  }
-
-  let text = String(value).trim().replace(/Rp/gi, "").replace(/\s/g, "");
-
-  /* Format Indonesia: 15.000,50 */
-  if (text.includes(".") && text.includes(",")) {
-    text = text.replace(/\./g, "").replace(",", ".");
-  } else if (text.includes(",")) {
-    /* Hanya koma: 15000,50 */
-    const parts = text.split(",");
-
-    if (parts[1] && parts[1].length <= 2) {
-      text = parts[0] + "." + parts[1];
-    } else {
-      text = text.replace(/,/g, "");
-    }
-  } else if (text.includes(".")) {
-    /* Hanya titik: 15.000 */
-    const parts = text.split(".");
-
-    if (parts.length === 2 && parts[1].length === 3) {
-      text = parts[0] + parts[1];
-    }
-  }
-
-  /* Buang karakter selain angka, titik, minus */
-  text = text.replace(/[^\d.-]/g, "");
-
-  const number = Number(text);
-
-  return Number.isFinite(number) ? number : 0;
-}
-
-/* =========================================================
-   FORMAT TANGGAL
-   ========================================================= */
-
-function formatTanggal() {
-  const now = new Date();
-
-  return now.toLocaleString("id-ID", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
-
-/* =========================================================
-   FORMAT METODE PEMBAYARAN
-   ========================================================= */
-
-function formatMetodePembayaran(metode) {
-  const value = String(metode || "QRIS")
-    .trim()
-    .toUpperCase();
-
-  const mapping = {
-    QRIS: "QRIS",
-    QR: "QRIS",
-
-    CASH: "TUNAI",
-    TUNAI: "TUNAI",
-    CASH_PAYMENT: "TUNAI",
-
-    TRANSFER: "TRANSFER",
-    BANK: "TRANSFER",
-
-    DEBIT: "DEBIT",
-    CREDIT: "KARTU",
-    CARD: "KARTU",
-
-    "E-WALLET": "E-WALLET",
-    EWALLET: "E-WALLET",
-    GOPAY: "E-WALLET",
-    OVO: "E-WALLET",
-    DANA: "E-WALLET",
-    SHOPEEPAY: "E-WALLET",
+/* ==========================================================================
+   STRUK.JS — FYNCOFFEE POS
+   Mengisi data struk dari localStorage / query string / window.opener
+   Kompatibel dengan struk.html (V2 — Thermal Realistic)
+   ========================================================================== */
+
+(function () {
+  "use strict";
+
+  /* ======================================================================
+     1. KONFIGURASI TOKO
+     ====================================================================== */
+  const STORE = {
+    name: "FYNCOFFEE",
+    tagline: "Coffee · Milk · Good Mood",
+    address: "Jl. Kesawan No. 12, Medan",
+    phone: "0812-6944-1924",
+    cashier: "Admin",
+    taxRate: 0, // 0.11 = 11% (isi 0 kalau tidak ada pajak)
+    serviceRate: 0, // service charge opsional
   };
 
-  return mapping[value] || value;
-}
+  /* ======================================================================
+     2. HELPER
+     ====================================================================== */
 
-/* =========================================================
-   GENERATE INVOICE (fallback)
-   ========================================================= */
-
-function generateInvoice() {
-  const now = new Date();
-
-  const tahun = now.getFullYear();
-  const bulan = String(now.getMonth() + 1).padStart(2, "0");
-  const tanggal = String(now.getDate()).padStart(2, "0");
-  const jam = String(now.getHours()).padStart(2, "0");
-  const menit = String(now.getMinutes()).padStart(2, "0");
-  const detik = String(now.getSeconds()).padStart(2, "0");
-  const random = String(Math.floor(Math.random() * 100)).padStart(2, "0");
-
-  return "INV-" + tahun + bulan + tanggal + "-" + jam + menit + detik + random;
-}
-
-/* =========================================================
-   ESCAPE HTML
-   ========================================================= */
-
-function escapeHTML(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-/* =========================================================
-   HALAMAN ERROR
-   ========================================================= */
-
-function tampilkanError(judul, pesan) {
-  document.body.innerHTML = `
-    <div
-      style="
-        width:100%;
-        min-height:100vh;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        padding:25px;
-        background:#f4f4f4;
-        font-family: Arial, Helvetica, sans-serif;
-        color:#111;
-      "
-    >
-      <div
-        style="
-          width:100%;
-          max-width:360px;
-          background:#fff;
-          padding:30px 22px;
-          border-radius:14px;
-          text-align:center;
-          box-shadow: 0 8px 30px rgba(0,0,0,.10);
-        "
-      >
-        <div
-          style="
-            width:48px;
-            height:48px;
-            margin:0 auto 15px;
-            border-radius:50%;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            background:#111;
-            color:#fff;
-            font-size:22px;
-            font-weight:bold;
-          "
-        >!</div>
-
-        <h2 style="margin:0 0 8px; font-size:18px;">
-          ${escapeHTML(judul)}
-        </h2>
-
-        <p
-          style="
-            margin:0;
-            color:#666;
-            font-size:13px;
-            line-height:1.5;
-          "
-        >
-          ${escapeHTML(pesan)}
-        </p>
-
-        <button
-          type="button"
-          onclick="window.close()"
-          style="
-            margin-top:18px;
-            width:100%;
-            padding:11px 14px;
-            border:0;
-            border-radius:8px;
-            background:#111;
-            color:#fff;
-            font-size:12px;
-            font-weight:700;
-            cursor:pointer;
-          "
-        >
-          ✕ TUTUP
-        </button>
-      </div>
-    </div>
-  `;
-}
-
-/* =========================================================
-   AUTO PRINT
-   ========================================================= */
-
-window.addEventListener("load", function () {
-  if (!AUTO_PRINT) return;
-
-  /* Pastikan data sudah terisi sebelum print */
-  const invoiceEl = document.getElementById("id");
-  const invoiceText = invoiceEl ? invoiceEl.textContent.trim() : "";
-
-  if (!invoiceText || invoiceText === "-") {
-    console.warn("Auto-print dibatalkan: data belum siap.");
-    return;
+  /**
+   * Ambil elemen by id dengan aman.
+   */
+  function $(id) {
+    return document.getElementById(id);
   }
 
-  setTimeout(function () {
-    window.print();
-  }, 800);
-});
+  /**
+   * Set textContent kalau elemen ada.
+   */
+  function setText(id, value) {
+    const el = $(id);
+    if (el) el.textContent = value;
+  }
 
-/* =========================================================
-   DEBUG
-   ========================================================= */
+  /**
+   * Format angka jadi Rupiah tanpa "Rp".
+   */
+  function formatRupiah(angka) {
+    const n = Number(angka) || 0;
+    return n.toLocaleString("id-ID");
+  }
 
-console.log(
-  "%c FYNCOFFEE STRUK V2 ",
-  "background:#111827;color:white;padding:6px 10px;border-radius:6px;font-weight:bold;",
-);
-console.log("Invoice:", invoice);
-console.log("Metode :", metode);
-console.log("Status :", statusInfo.label);
-console.log("Total  :", formatRupiah(total));
+  /**
+   * Format tanggal + jam.
+   */
+  function formatTanggal(date) {
+    const d = date instanceof Date ? date : new Date(date);
+    if (isNaN(d.getTime())) return "-";
+
+    const hari = [
+      "Minggu",
+      "Senin",
+      "Selasa",
+      "Rabu",
+      "Kamis",
+      "Jumat",
+      "Sabtu",
+    ];
+    const bulan = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "Mei",
+      "Jun",
+      "Jul",
+      "Agu",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Des",
+    ];
+
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = bulan[d.getMonth()];
+    const yyyy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    const ss = String(d.getSeconds()).padStart(2, "0");
+
+    return `${dd} ${mm} ${yyyy} ${hh}:${mi}:${ss}`;
+  }
+
+  /**
+   * Escape HTML untuk cegah XSS dari nama produk / catatan.
+   */
+  function escapeHtml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  /**
+   * Normalisasi nomor: buang semua karakter non-digit.
+   */
+  function toNumber(value) {
+    if (typeof value === "number") return value;
+    if (value == null) return 0;
+    return Number(String(value).replace(/[^\d.-]/g, "")) || 0;
+  }
+
+  /**
+   * Baca query string → object.
+   */
+  function getQueryParams() {
+    const out = {};
+    try {
+      const params = new URLSearchParams(window.location.search);
+      params.forEach((v, k) => (out[k] = v));
+    } catch (e) {}
+    return out;
+  }
+
+  /**
+   * Ambil data dari localStorage dengan aman.
+   */
+  function getLocal(key) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /* ======================================================================
+     3. SUMBER DATA
+     ======================================================================
+     Prioritas:
+       1) window.opener.strukData / lastTransaction
+       2) localStorage "fyncoffee_last_struk"
+       3) query string (?data=base64 atau field tunggal)
+       4) localStorage "fyncoffee_cart" (fallback)
+     ====================================================================== */
+
+  function ambilDataStruk() {
+    /* --- 1. Dari window.opener (popup dari POS) --- */
+    try {
+      if (window.opener && !window.opener.closed) {
+        const o = window.opener;
+        const candidates = [
+          o.strukData,
+          o.lastTransaction,
+          o.lastStruk,
+          o.currentTransaction,
+        ];
+        for (const c of candidates) {
+          if (c && typeof c === "object") return c;
+        }
+      }
+    } catch (e) {
+      console.warn("[STRUK] Tidak bisa akses window.opener:", e);
+    }
+
+    /* --- 2. Dari localStorage key utama --- */
+    const fromLS = getLocal("fyncoffee_last_struk");
+    if (fromLS && typeof fromLS === "object") return fromLS;
+
+    /* --- 3. Dari query string --- */
+    const q = getQueryParams();
+    if (q.data) {
+      try {
+        const decoded = decodeURIComponent(escape(atob(q.data)));
+        const parsed = JSON.parse(decoded);
+        if (parsed && typeof parsed === "object") return parsed;
+      } catch (e) {
+        console.warn("[STRUK] Gagal decode query ?data:", e);
+      }
+    }
+
+    /* --- 4. Fallback: cart + info dari localStorage --- */
+    const cart = getLocal("fyncoffee_cart");
+    if (Array.isArray(cart) && cart.length) {
+      return {
+        id: getLocal("fyncoffee_last_id") || generateInvoiceId(),
+        tanggal: new Date().toISOString(),
+        kasir: STORE.cashier,
+        items: cart,
+        subtotal: cart.reduce(
+          (s, it) => s + toNumber(it.harga) * toNumber(it.qty || it.qty || 1),
+          0,
+        ),
+        metode: "CASH",
+        status: "LUNAS",
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Generate invoice id (fallback).
+   */
+  function generateInvoiceId() {
+    const d = new Date();
+    const ymd =
+      d.getFullYear() +
+      String(d.getMonth() + 1).padStart(2, "0") +
+      String(d.getDate()).padStart(2, "0");
+    const rand = Math.floor(Math.random() * 9000 + 1000);
+    return `FYN-${ymd}-${rand}`;
+  }
+
+  /* ======================================================================
+     4. RENDER ITEM
+     ====================================================================== */
+
+  function renderItems(items) {
+    const tbody = $("detail");
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    if (!Array.isArray(items) || items.length === 0) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td colspan="3" style="text-align:center;padding:8px 0;color:#666;">
+          (Tidak ada item)
+        </td>
+      `;
+      tbody.appendChild(tr);
+      return;
+    }
+
+    items.forEach((it) => {
+      const nama = escapeHtml(it.nama || it.name || "Produk");
+      const qty = toNumber(it.qty || it.jumlah || it.quantity || 1);
+      const harga = toNumber(it.harga || it.price || it.hargaSatuan || 0);
+      const subtotal = harga * qty;
+
+      const note = it.catatan || it.note || "";
+      const noteHtml = note
+        ? `<div class="product-price" style="font-style:italic;">${escapeHtml(note)}</div>`
+        : "";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="col-item">
+          <span class="product-name">${nama}</span>
+          <span class="product-price">@ ${formatRupiah(harga)}${noteHtml ? " · " + escapeHtml(note) : ""}</span>
+        </td>
+        <td class="col-qty">${qty}</td>
+        <td class="col-price">${formatRupiah(subtotal)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ======================================================================
+     5. HITUNG TOTAL
+     ====================================================================== */
+
+  function hitungRingkasan(data) {
+    const items = Array.isArray(data.items) ? data.items : [];
+
+    let subtotal = toNumber(data.subtotal);
+    if (!subtotal && items.length) {
+      subtotal = items.reduce((s, it) => {
+        const qty = toNumber(it.qty || it.jumlah || 1);
+        const harga = toNumber(it.harga || it.price || 0);
+        return s + qty * harga;
+      }, 0);
+    }
+
+    const diskon = toNumber(data.diskon || data.discount || 0);
+
+    let pajak = toNumber(data.pajak || data.tax || 0);
+    if (!pajak && STORE.taxRate > 0) {
+      pajak = Math.round((subtotal - diskon) * STORE.taxRate);
+    }
+
+    const service = STORE.serviceRate
+      ? Math.round((subtotal - diskon) * STORE.serviceRate)
+      : 0;
+
+    const total = toNumber(data.total) || subtotal - diskon + pajak + service;
+
+    const bayar = toNumber(
+      data.bayar || data.paid || data.uangDiterima || total,
+    );
+    const kembali = toNumber(
+      data.kembali || data.change || Math.max(0, bayar - total),
+    );
+
+    return { subtotal, diskon, pajak, service, total, bayar, kembali };
+  }
+
+  /* ======================================================================
+     6. STATUS BADGE
+     ====================================================================== */
+
+  function renderStatus(data) {
+    const el = $("status");
+    if (!el) return;
+
+    let raw = String(data.status || "LUNAS").toUpperCase();
+    if (data.metode && /qris/i.test(data.metode) && !data.status) {
+      raw = "LUNAS";
+    }
+
+    el.classList.remove("lunas", "pending", "batal");
+
+    if (/BATAL|CANCEL|VOID/i.test(raw)) {
+      el.textContent = "Batal";
+      el.classList.add("batal");
+    } else if (/PENDING|BELUM|UNPAID/i.test(raw)) {
+      el.textContent = "Pending";
+      el.classList.add("pending");
+    } else {
+      el.textContent = "Lunas";
+      el.classList.add("lunas");
+    }
+  }
+
+  /* ======================================================================
+     7. METODE PEMBAYARAN + QRIS NOTE
+     ====================================================================== */
+
+  function renderMetode(data) {
+    const el = $("metode");
+    if (!el) return;
+
+    const m = String(data.metode || data.payment || "CASH")
+      .toUpperCase()
+      .trim();
+
+    let label = m;
+    if (/QRIS|QR/i.test(m)) label = "QRIS";
+    else if (/CASH|TUNAI/i.test(m)) label = "CASH";
+    else if (/TRANSFER|BANK/i.test(m)) label = "TRANSFER";
+    else if (/EWALLET|E-WALLET|GOPAY|OVO|DANA|SHOPEEPAY/i.test(m))
+      label = "E-WALLET";
+    else if (/DEBIT|KREDIT|CARD/i.test(m)) label = "KARTU";
+
+    el.textContent = label;
+
+    const qrisNote = $("qrisNote");
+    if (qrisNote) {
+      qrisNote.style.display = label === "QRIS" ? "block" : "none";
+    }
+  }
+
+  /* ======================================================================
+     8. RENDER UTAMA
+     ====================================================================== */
+
+  function renderStruk(data) {
+    if (!data) {
+      tampilkanState(
+        "Data Tidak Ditemukan",
+        "Struk tidak bisa dimuat. Silakan buka ulang dari aplikasi POS.",
+        "⚠️",
+      );
+      return;
+    }
+
+    /* --- Info header --- */
+    const invoiceId =
+      data.id || data.invoice || data.noTransaksi || generateInvoiceId();
+    setText("id", invoiceId);
+    setText("tanggal", formatTanggal(data.tanggal || data.date || Date.now()));
+    setText("kasir", data.kasir || data.cashier || STORE.cashier);
+
+    /* --- Status badge --- */
+    renderStatus(data);
+
+    /* --- Item --- */
+    renderItems(data.items || data.produk || []);
+
+    /* --- Ringkasan --- */
+    const r = hitungRingkasan(data);
+
+    setText("subtotal", formatRupiah(r.subtotal));
+    setText("diskon", formatRupiah(r.diskon));
+    setText("pajak", formatRupiah(r.pajak + r.service));
+    setText("total", formatRupiah(r.total));
+    setText("bayar", formatRupiah(r.bayar));
+    setText("kembali", formatRupiah(r.kembali));
+
+    /* --- Metode + QRIS --- */
+    renderMetode(data);
+
+    /* --- Update title halaman --- */
+    document.title = `Struk ${invoiceId} — ${STORE.name}`;
+
+    /* --- Event sinkronisasi tambahan --- */
+    document.dispatchEvent(
+      new CustomEvent("struk:rendered", { detail: { data, ringkasan: r } }),
+    );
+  }
+
+  /* ======================================================================
+     9. STATE (loading / kosong / error)
+     ====================================================================== */
+
+  function tampilkanState(title, message, icon) {
+    const struk = $("struk");
+    if (!struk) return;
+
+    struk.innerHTML = `
+      <div class="state">
+        <div class="icon">${escapeHtml(icon || "🧾")}</div>
+        <strong>${escapeHtml(title || "Memuat...")}</strong>
+        <div>${escapeHtml(message || "Mohon tunggu sebentar...")}</div>
+      </div>
+    `;
+  }
+
+  /* ======================================================================
+     10. AUTO-READY: tunggu DOM siap
+     ====================================================================== */
+
+  function init() {
+    try {
+      const data = ambilDataStruk();
+
+      if (!data) {
+        // Coba tunggu sedikit — mungkin opener belum siap
+        setTimeout(() => {
+          const retry = ambilDataStruk();
+          if (retry) renderStruk(retry);
+          else
+            tampilkanState(
+              "Data Tidak Ditemukan",
+              "Struk tidak bisa dimuat. Silakan buka ulang dari aplikasi POS.",
+              "⚠️",
+            );
+        }, 500);
+        return;
+      }
+
+      renderStruk(data);
+    } catch (e) {
+      console.error("[STRUK] Error render:", e);
+      tampilkanState(
+        "Gagal Memuat Struk",
+        "Terjadi kesalahan saat memuat data. Coba buka ulang.",
+        "❌",
+      );
+    }
+  }
+
+  /* ======================================================================
+     11. EXPORT GLOBAL (untuk dipanggil dari luar / console)
+     ====================================================================== */
+
+  window.Struk = {
+    render: renderStruk,
+    reload: init,
+    formatRupiah,
+    formatTanggal,
+    getData: ambilDataStruk,
+    STORE,
+  };
+
+  /* ======================================================================
+     12. JALANKAN
+     ====================================================================== */
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+  /* ======================================================================
+     13. SINKRONISASI NOMOR INVOICE KE FOOTER + BARCODE
+     (kompatibel dengan struk.html V2)
+     ====================================================================== */
+  document.addEventListener("struk:rendered", function (e) {
+    const inv = e.detail?.data?.id || $("id")?.textContent || "-";
+
+    const footer = $("invoiceFooter");
+    if (footer && inv && inv !== "-") {
+      footer.textContent = "NO. " + inv;
+    }
+
+    // Trigger barcode render kalau fungsi tersedia
+    if (typeof window.renderBarcode === "function") {
+      try {
+        window.renderBarcode();
+      } catch (err) {}
+    }
+  });
+
+  console.log(
+    "%c STRUK.JS ",
+    "background:#111;color:#fff;padding:6px 10px;border-radius:4px;font-weight:900;",
+    "loaded ✓",
+  );
+})();
