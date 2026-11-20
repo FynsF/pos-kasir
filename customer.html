@@ -8,7 +8,15 @@
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
 
-    <meta name="theme-color" content="#080808" />
+    <meta name="theme-color" content="#0a0807" />
+
+    <link rel="icon" type="image/png" href="Logo no background.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
     <title>FYNCOFFEE • Customer Display</title>
 
@@ -19,22 +27,27 @@
          ===================================================== */
 
       :root {
-        --bg: #080808;
-        --bg-soft: #111111;
+        --bg: #0a0807;
+        --bg-soft: #130f0c;
 
-        --text: #ffffff;
-        --text-soft: rgba(255, 255, 255, 0.68);
-        --text-muted: rgba(255, 255, 255, 0.42);
+        --text: #f6eddf;
+        --text-soft: rgba(246, 237, 223, 0.7);
+        --text-muted: rgba(246, 237, 223, 0.44);
 
-        --green: #10b981;
-        --green-dark: #047857;
-        --green-soft: rgba(16, 185, 129, 0.12);
+        --green: #74d1a2;
+        --green-dark: #2f8f64;
+        --green-soft: rgba(116, 209, 162, 0.12);
 
-        --gold: #f59e0b;
-        --red: #ef4444;
+        --gold: #d6b26a;
+        --gold-hi: #f1dfae;
+        --gold-lo: #a47c36;
+        --gold-grad: linear-gradient(135deg, #f3e3b6 0%, #d6b26a 48%, #a47c36 100%);
+        --red: #f08379;
 
-        --border: rgba(255, 255, 255, 0.09);
-        --border-soft: rgba(255, 255, 255, 0.05);
+        --border: rgba(214, 178, 106, 0.18);
+        --border-soft: rgba(214, 178, 106, 0.08);
+
+        --font-display: "Playfair Display", "Cormorant Garamond", Georgia, serif;
 
         --radius-md: 16px;
         --radius-lg: 24px;
@@ -74,13 +87,13 @@
         background:
           radial-gradient(
             circle at 50% 15%,
-            rgba(255, 255, 255, 0.045),
-            transparent 35%
+            rgba(214, 178, 106, 0.1),
+            transparent 38%
           ),
           radial-gradient(
             circle at 50% 100%,
-            rgba(16, 185, 129, 0.06),
-            transparent 40%
+            rgba(164, 124, 54, 0.1),
+            transparent 42%
           ),
           var(--bg);
 
@@ -1082,6 +1095,140 @@
         }
       }
 
+
+      /* =====================================================
+         LUXE LAYER — Noir & Champagne Gold
+         ===================================================== */
+
+      .brand {
+        opacity: 1;
+        gap: 12px;
+      }
+      .brand-logo {
+        width: 44px;
+        height: 44px;
+        padding: 3px;
+        background: radial-gradient(circle at 30% 20%, #2b2118, #0d0a08 75%);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
+      }
+      .brand-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+      .brand-name {
+        font-family: var(--font-display);
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.3em;
+        background: var(--gold-grad);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: var(--gold);
+      }
+
+      .clock {
+        color: var(--gold-hi);
+        letter-spacing: 0.08em;
+      }
+      .connection-pill {
+        background: rgba(214, 178, 106, 0.07);
+      }
+      .conn-dot {
+        box-shadow: 0 0 0 3px rgba(116, 209, 162, 0.18);
+      }
+      .conn-dot.offline {
+        box-shadow: 0 0 0 3px rgba(240, 131, 121, 0.18);
+      }
+      .conn-dot.loading {
+        box-shadow: 0 0 0 3px rgba(214, 178, 106, 0.2);
+      }
+
+      #judul,
+      .item-name,
+      .success-title,
+      .success-subtitle,
+      #instruksi,
+      .welcome h2 {
+        color: var(--text);
+        font-family: var(--font-display);
+      }
+      #judul {
+        color: var(--gold);
+        letter-spacing: 0.2em;
+        font-weight: 600;
+        opacity: 0.95;
+      }
+
+      .total {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: 0;
+        background: var(--gold-grad);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: var(--gold-hi);
+        text-shadow: none;
+        filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.5));
+      }
+
+      .items-header-count {
+        color: var(--gold);
+      }
+      .item-price {
+        color: var(--gold-hi);
+        font-family: var(--font-display);
+        font-weight: 700;
+      }
+
+      .items-panel,
+      .qris-wrapper {
+        border-color: var(--border);
+      }
+      .items-panel {
+        background: linear-gradient(160deg, #1a1511, #110d0a);
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, 0.5),
+          inset 0 1px 0 rgba(214, 178, 106, 0.08);
+      }
+      .qris-wrapper {
+        border: 2px solid var(--gold);
+        box-shadow:
+          0 0 0 8px rgba(214, 178, 106, 0.08),
+          0 28px 70px rgba(0, 0, 0, 0.55);
+      }
+
+      .scan-badge {
+        background: linear-gradient(145deg, #231c15, #15110d);
+        border: 1px solid var(--border);
+        color: var(--gold-hi);
+        letter-spacing: 0.14em;
+      }
+      .scan-dot {
+        background: var(--gold);
+        box-shadow: 0 0 0 4px rgba(214, 178, 106, 0.16);
+      }
+
+      .welcome h2 {
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: var(--gold-hi);
+      }
+
+      .fullscreen-btn {
+        border-color: var(--border);
+        color: var(--gold-hi);
+        background: rgba(214, 178, 106, 0.08);
+      }
+      .fullscreen-btn:hover {
+        background: rgba(214, 178, 106, 0.18);
+      }
+
       /* =====================================================
          REDUCED MOTION
          ===================================================== */
@@ -1102,7 +1249,7 @@
     <div class="customer waiting" id="customerDisplay">
       <!-- BRAND -->
       <div class="brand">
-        <div class="brand-logo">☕</div>
+        <div class="brand-logo"><img src="Logo no background.png" alt="" /></div>
         <div class="brand-name">FYNCOFFEE</div>
       </div>
 
@@ -1155,7 +1302,7 @@
             <div class="qris-fallback" id="qrisFallback">
               <div class="qr-icon">▣</div>
               <div>QR Code belum tersedia</div>
-              <div style="font-size: 10px; color: #666">
+              <div style="font-size: 10px; color: #8a7e6e">
                 Letakkan file <b>Qris Fyn.jpg</b> di folder yang sama
               </div>
             </div>
@@ -1693,7 +1840,7 @@
 
         customer.innerHTML = `
           <div class="brand">
-            <div class="brand-logo">☕</div>
+            <div class="brand-logo"><img src="Logo no background.png" alt="" /></div>
             <div class="brand-name">FYNCOFFEE</div>
           </div>
 
@@ -1764,7 +1911,7 @@
 
         customer.innerHTML = `
           <div class="brand">
-            <div class="brand-logo">☕</div>
+            <div class="brand-logo"><img src="Logo no background.png" alt="" /></div>
             <div class="brand-name">FYNCOFFEE</div>
           </div>
 
