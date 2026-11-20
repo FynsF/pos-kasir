@@ -1,6 +1,6 @@
 // ============================================================
 // FYNCOFFEE POS KASIR
-// SCRIPT.JS V7
+// SCRIPT.JS V8 — LUXE EDITION
 // FRONTEND <-> GOOGLE APPS SCRIPT <-> GOOGLE SPREADSHEET
 // + MODAL QRIS + MODAL STRUK + CETAK THERMAL 58MM
 // ============================================================
@@ -265,7 +265,8 @@ function renderKategori() {
         <button
           type="button"
           class="category-btn ${item === kategoriAktif ? "active" : ""}"
-          onclick='pilihKategori(${JSON.stringify(item)})'
+          data-kategori="${escapeHTML(item)}"
+          onclick="pilihKategori(this.dataset.kategori)"
         >
           ${escapeHTML(item)}
         </button>
@@ -801,6 +802,32 @@ function konfirmasiCash() {
 }
 
 // ============================================================
+// META PESANAN (tipe, nama pelanggan, catatan)
+// ============================================================
+const LABEL_TIPE_PESANAN = {
+  "dine-in": "Dine In",
+  "take-away": "Take Away",
+  delivery: "Delivery",
+};
+
+function ambilMetaPesanan() {
+  const aktif = document.querySelector("#orderTypeGroup .order-type-btn.active");
+  const tipeKey = aktif ? aktif.dataset.orderType : "dine-in";
+  const tipe = LABEL_TIPE_PESANAN[tipeKey] || "Dine In";
+
+  const nameInput = document.getElementById("customerNameInput");
+  const noteInput = document.getElementById("orderNoteInput");
+  const pelanggan = nameInput ? nameInput.value.trim() : "";
+  const catatanUser = noteInput ? noteInput.value.trim() : "";
+
+  const bagian = [tipe];
+  if (pelanggan) bagian.push(`Pelanggan: ${pelanggan}`);
+  if (catatanUser) bagian.push(`Catatan: ${catatanUser}`);
+
+  return { tipe, pelanggan, catatanUser, catatan: bagian.join(" | ") };
+}
+
+// ============================================================
 // SIMPAN TRANSAKSI
 // ============================================================
 async function prosesPembayaran(metode, uangDiterima = 0) {
@@ -849,13 +876,15 @@ async function prosesPembayaran(metode, uangDiterima = 0) {
   const uang = metodeFinal === "CASH" ? Number(uangDiterima) || 0 : total;
   const kembali = metodeFinal === "CASH" ? Math.max(0, uang - total) : 0;
 
+  const meta = ambilMetaPesanan();
+
   const payload = {
     action: "simpan",
     kasir: namaKasir,
     metode_pembayaran: metodeFinal,
     status: "Lunas",
     uang_diterima: metodeFinal === "CASH" ? uang : 0,
-    catatan: "",
+    catatan: meta.catatan,
     items: snapshotItems.map((item) => ({
       id_produk: item.id_produk,
       qty: item.qty,
@@ -897,7 +926,10 @@ async function prosesPembayaran(metode, uangDiterima = 0) {
       uang_diterima: uang,
       kembali: kembali,
       kembalian: kembali,
-      status: result.status_transaksi || result.status || "Lunas",
+      status: result.status_transaksi || "Lunas",
+      tipe_pesanan: meta.tipe,
+      pelanggan: meta.pelanggan,
+      catatan: meta.catatanUser,
     };
 
     // simpan untuk Struk.html & cetak ulang
@@ -995,6 +1027,16 @@ function buatHTMLStruk(data) {
       <div class="r-row r-small">
         <span>Kasir</span><span>${escapeHTML(kasir)}</span>
       </div>
+      ${
+        data.tipe_pesanan
+          ? `<div class="r-row r-small"><span>Tipe</span><span>${escapeHTML(data.tipe_pesanan)}</span></div>`
+          : ""
+      }
+      ${
+        data.pelanggan
+          ? `<div class="r-row r-small"><span>Pelanggan</span><span>${escapeHTML(data.pelanggan)}</span></div>`
+          : ""
+      }
 
       <div class="r-line"></div>
 
@@ -1029,6 +1071,12 @@ function buatHTMLStruk(data) {
       <div class="r-row">
         <span>Status</span><span>${escapeHTML(status)}</span>
       </div>
+
+      ${
+        data.catatan
+          ? `<div class="r-line"></div><div class="r-small">Catatan: ${escapeHTML(data.catatan)}</div>`
+          : ""
+      }
 
       <div class="r-line"></div>
 
@@ -1111,7 +1159,7 @@ function bukaStruk() {
     return;
   }
 
-  const win = window.open("Struk.html", "_blank");
+  const win = window.open("struk.html", "_blank");
 
   if (!win) {
     toast("Popup diblokir browser. Izinkan popup untuk FYNCOFFEE.", "error");
@@ -1132,7 +1180,7 @@ function printReceipt() {
     return;
   }
 
-  const win = window.open("Struk.html", "_blank");
+  const win = window.open("struk.html", "_blank");
 
   if (!win) {
     toast("Popup diblokir browser", "error");
@@ -1195,62 +1243,64 @@ function buatHTMLDisplay(payload = null) {
 <head>
 <meta charset="utf-8"/>
 <title>Customer Display — FYNCOFFEE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: Inter, system-ui, -apple-system, sans-serif;
-    background: #0a0a0a; color: #fff; min-height: 100vh;
+    background: radial-gradient(ellipse at 10% 0%, rgba(214,178,106,.12), transparent 55%), #0a0807; color: #f6eddf; min-height: 100vh;
     display: flex; flex-direction: column;
   }
   header {
     height: 90px; flex: 0 0 90px;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 40px; background: #171717; border-bottom: 1px solid #262626;
+    padding: 0 40px; background: #110e0b; border-bottom: 1px solid rgba(214,178,106,.28);
   }
-  header .brand { font-size: 28px; font-weight: 900; letter-spacing: 3px; }
-  header .clock { font-size: 22px; font-weight: 800; color: #a3a3a3;
+  header .brand { font-family: 'Playfair Display', Georgia, serif; font-size: 30px; font-weight: 700; letter-spacing: 6px; color: #d6b26a; }
+  header .clock { font-size: 22px; font-weight: 800; color: #f1dfae;
     font-variant-numeric: tabular-nums; }
   main { flex: 1; overflow-y: auto; padding: 30px 40px; }
   .row {
     display: grid; grid-template-columns: 1fr auto auto;
     gap: 24px; align-items: center;
-    padding: 16px 0; border-bottom: 1px solid #1f1f1f;
+    padding: 16px 0; border-bottom: 1px solid rgba(214,178,106,.14);
     font-size: 22px;
   }
-  .row .name { font-weight: 800; }
-  .row .qty { color: #a3a3a3; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .row .sub { font-weight: 900; font-variant-numeric: tabular-nums;
+  .row .name { font-family: 'Playfair Display', Georgia, serif; font-weight: 600; }
+  .row .qty { color: #c4b8a5; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .row .sub { color: #f1dfae; font-weight: 800; font-variant-numeric: tabular-nums;
     text-align: right; min-width: 180px; }
   .empty {
     height: 100%; display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 14px; color: #525252;
+    flex-direction: column; gap: 14px; color: #8a7e6e;
     font-size: 26px; font-weight: 800; text-align: center;
   }
   .empty .icon { font-size: 70px; }
   footer {
-    flex: 0 0 auto; background: #171717; border-top: 1px solid #262626;
+    flex: 0 0 auto; background: #110e0b; border-top: 1px solid rgba(214,178,106,.28);
     padding: 26px 40px 32px;
   }
   .count {
     display: flex; justify-content: space-between;
-    font-size: 18px; color: #a3a3a3; font-weight: 700; margin-bottom: 14px;
+    font-size: 18px; color: #c4b8a5; font-weight: 700; margin-bottom: 14px;
   }
   .total {
     display: flex; justify-content: space-between; align-items: baseline;
     gap: 24px;
   }
   .total span {
-    font-size: 22px; font-weight: 800; color: #a3a3a3; letter-spacing: 3px;
+    font-family: 'Playfair Display', Georgia, serif; font-size: 22px; font-weight: 700; color: #d6b26a; letter-spacing: 5px;
   }
   .total strong {
-    font-size: 58px; font-weight: 900;
+    font-family: 'Playfair Display', Georgia, serif; font-size: 58px; font-weight: 700; color: #f1dfae;
     font-variant-numeric: tabular-nums;
   }
 </style>
 </head>
 <body>
   <header>
-    <div class="brand">☕ FYNCOFFEE</div>
+    <div class="brand">FYNCOFFEE</div>
     <div class="clock" id="clock">--:--:--</div>
   </header>
 
@@ -1261,7 +1311,7 @@ function buatHTMLDisplay(payload = null) {
           <div class="empty">
             <div class="icon">🛒</div>
             <div>Selamat datang di FYNCOFFEE</div>
-            <div style="font-size:16px;color:#737373">Silakan lakukan pemesanan di kasir</div>
+            <div style="font-size:16px;color:#8a7e6e">Silakan lakukan pemesanan di kasir</div>
           </div>
         `
         : itemsHTML
@@ -1306,7 +1356,7 @@ function buatHTMLDisplay(payload = null) {
           '<div class="empty">' +
             '<div class="icon">🛒</div>' +
             '<div>Selamat datang di FYNCOFFEE</div>' +
-            '<div style="font-size:16px;color:#737373">' +
+            '<div style="font-size:16px;color:#8a7e6e">' +
               'Silakan lakukan pemesanan di kasir' +
             '</div>' +
           '</div>';
@@ -1718,7 +1768,7 @@ function toast(message, type = "info") {
   }
 
   const item = document.createElement("div");
-  item.className = `toast toast-${type}`;
+  item.className = `toast toast-${type} ${type}`;
   item.textContent = message;
 
   container.appendChild(item);
