@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0807" />
+    <link rel="icon" type="image/png" href="Logo no background.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
 
     <title>Struk FYNCOFFEE</title>
 
@@ -585,6 +593,83 @@
         }
       }
 
+
+      /* =====================================================
+         LUXE LAYER — Noir & Champagne Gold
+         (hanya tampilan layar; kertas struk tetap terang untuk thermal)
+      ===================================================== */
+      html {
+        background: #0a0807;
+      }
+      body {
+        background:
+          radial-gradient(
+            ellipse 60rem 30rem at 15% -5%,
+            rgba(214, 178, 106, 0.13),
+            transparent 70%
+          ),
+          radial-gradient(
+            ellipse 40rem 26rem at 100% 100%,
+            rgba(164, 124, 54, 0.1),
+            transparent 70%
+          ),
+          #0a0807;
+        background-attachment: fixed;
+      }
+      #struk {
+        background: #fffdf7;
+        border-top: 3px solid #d6b26a;
+        box-shadow:
+          0 0 0 1px rgba(214, 178, 106, 0.18),
+          0 30px 70px rgba(0, 0, 0, 0.6);
+      }
+      #struk::before,
+      #struk::after {
+        background-image:
+          linear-gradient(45deg, transparent 50%, #0a0807 50%),
+          linear-gradient(-45deg, transparent 50%, #0a0807 50%);
+      }
+      .actions-title {
+        color: #d6b26a;
+        letter-spacing: 0.3em;
+        font-family: "Playfair Display", Georgia, serif;
+      }
+      button {
+        background: linear-gradient(135deg, #f3e3b6 0%, #d6b26a 48%, #a47c36 100%);
+        color: #16100a;
+        letter-spacing: 0.04em;
+        box-shadow: 0 10px 24px rgba(214, 178, 106, 0.22);
+      }
+      button:hover {
+        opacity: 1;
+        filter: brightness(1.08);
+        box-shadow: 0 14px 30px rgba(214, 178, 106, 0.3);
+      }
+      #btnPrint {
+        grid-column: 1 / -1;
+      }
+      .btn-pdf {
+        background: linear-gradient(145deg, #231c15, #15110d);
+        color: #f1dfae;
+        border: 1px solid rgba(214, 178, 106, 0.4);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      }
+      .btn-ghost {
+        background: transparent;
+        color: #c4b8a5;
+        border: 1px solid rgba(214, 178, 106, 0.28);
+      }
+      .btn-ghost:hover {
+        background: rgba(214, 178, 106, 0.1);
+        border-color: #d6b26a;
+        color: #f1dfae;
+        filter: none;
+      }
+      :focus-visible {
+        outline: 2px solid #d6b26a;
+        outline-offset: 3px;
+      }
+
       /* =====================================================
          PRINT
       ===================================================== */
@@ -866,9 +951,22 @@
         const target = document.getElementById("struk");
         if (!target || !("MutationObserver" in window)) return;
 
+        /*
+         * PENTING: renderBarcode() mengubah isi #struk (elemen yang diamati),
+         * sehingga tanpa pengaman ini observer memicu dirinya sendiri tanpa
+         * henti dan halaman membeku. Mutasi buatan sendiri dibuang lewat
+         * takeRecords(), dan render hanya berjalan bila nomor invoice berubah.
+         */
+        let lastSeed = null;
         const obs = new MutationObserver(() => {
-          renderBarcode();
-          syncInvoiceFooter();
+          const seed =
+            document.getElementById("id")?.textContent?.trim() || "";
+          if (seed !== lastSeed) {
+            lastSeed = seed;
+            renderBarcode();
+            syncInvoiceFooter();
+          }
+          obs.takeRecords();
         });
 
         obs.observe(target, {
@@ -879,8 +977,10 @@
 
         // initial
         setTimeout(() => {
+          lastSeed = document.getElementById("id")?.textContent?.trim() || "";
           renderBarcode();
           syncInvoiceFooter();
+          obs.takeRecords();
         }, 400);
       })();
 
