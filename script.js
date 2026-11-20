@@ -1,12 +1,30 @@
 // ============================================================
 // FYNCOFFEE POS KASIR
-// SCRIPT.JS V8 — LUXE EDITION
-// FRONTEND <-> GOOGLE APPS SCRIPT <-> GOOGLE SPREADSHEET
-// + MODAL QRIS + MODAL STRUK + CETAK THERMAL 58MM
+// SCRIPT.JS V9 — SINKRON DENGAN BACKEND APPS SCRIPT V4
+// FRONTEND <-> GOOGLE APPS SCRIPT <-> GOOGLE SPREADSHEET (EXCEL)
+//
+// PERUBAHAN DARI V8:
+//  1. request_id pada setiap transaksi (anti dobel-simpan saat sinyal
+//     lambat / tombol ditekan ulang) -> cocok dengan backend v4.
+//  2. Struk memakai data dari SERVER (harga, total, kembalian, waktu),
+//     sehingga struk selalu sama persis dengan isi spreadsheet.
+//  3. Aksi tulis (lunas, batal, reset display) pindah dari GET ke POST.
+//  4. Dukungan API_KEY (opsional) untuk backend yang dikunci.
+//  5. Timeout 45 detik + pesan jelas jika koneksi putus.
+//  6. Otomatis cek versi backend saat aplikasi dibuka.
+//  7. Jika stok di server berbeda (gagal simpan), stok otomatis dimuat ulang.
+//  8. lunaskanTransaksi(id, {metode, uang_diterima}) untuk transaksi Pending.
+//  9. Perbaikan escape id produk pada onclick.
 // ============================================================
 
 const API =
-  "https://script.google.com/macros/s/AKfycbxM00fAkiSzUzWyKc92vSBk2Yn2RSCHb71ditacJxJaWX8wpbksHTwRzTjMMlTBFm_WkQ/exec";
+  "https://script.google.com/macros/s/AKfycbxrxPgBaUh0Xr_iP1G7MLKPHwPLqUMhLAosmz62y2A3P1eCQ7FGU6nDCNH_JjxpIkdw/exec";
+
+// Isi sama persis dengan CONFIG.API_KEY di Apps Script.
+// Kosongkan ("") jika API_KEY di backend juga kosong.
+const API_KEY = "";
+
+const REQUEST_TIMEOUT_MS = 45000;
 
 // ============================================================
 // KONFIGURASI TOKO (dipakai di struk)
@@ -28,7 +46,8 @@ let kategoriAktif = "Semua";
 let searchQuery = "";
 let sedangMemproses = false;
 let sedangMemuatProduk = false;
-let lastTransaksi = null; // untuk cetak ulang dari modal struk
+let lastTransaksi = null;
+let percobaanBayar = null; // { signature, requestId } -> dipakai ulang saat retry
 
 // ============================================================
 // DOM READY
@@ -42,14 +61,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderCart();
   updateClock();
-
   setInterval(updateClock, 1000);
 
   ambilProduk();
+  cekVersiBackend();
 });
 
 // ============================================================
-// API GET
+// HTTP DASAR (timeout + parsing JSON)
+// ============================================================
+async function fetchJSON(url, options = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    let result;
+    try {
+      result = await response.json();
+    } catch (e) {
+      throw new Error(
+        "Respons server tidak valid. Pastikan Apps Script sudah di-deploy ulang (New version).",
+      );
+    }
+
+    if (result && result.status === "error") {
+      throw new Error(result.message || "API mengembalikan error");
+    }
+    return result;
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error(
+        "Koneksi ke server terlalu lama. Periksa internet lalu coba lagi.",
+      );
+    }
+    if (error instanceof TypeError) {
+      throw new Error(
+        "Tidak dapat terhubung ke server. Periksa internet Anda.",
+      );
+    }
+    throw error;
+  }
+}
+
+// ============================================================
+// API GET (hanya untuk membaca data)
 // ============================================================
 async function apiGet(params = {}) {
   const query = new URLSearchParams();
@@ -64,49 +126,42 @@ async function apiGet(params = {}) {
     }
   });
 
-  const url = `${API}?${query.toString()}`;
-
-  const response = await fetch(url, {
+  return fetchJSON(`${API}?${query.toString()}`, {
     method: "GET",
     cache: "no-store",
   });
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
-  }
-
-  const result = await response.json();
-
-  if (result && result.status === "error") {
-    throw new Error(result.message || "API mengembalikan error");
-  }
-
-  return result;
 }
 
 // ============================================================
-// API POST
+// API POST (semua aksi tulis)
 // ============================================================
 async function apiPost(payload = {}) {
-  const response = await fetch(API, {
+  const body = API_KEY ? { ...payload, api_key: API_KEY } : payload;
+
+  return fetchJSON(API, {
     method: "POST",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8",
-    },
-    body: JSON.stringify(payload),
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(body),
   });
+}
 
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
+// ============================================================
+// CEK VERSI BACKEND
+// ============================================================
+async function cekVersiBackend() {
+  try {
+    const result = await apiGet({ action: "health" });
+    const pesan = String((result && result.message) || "");
+
+    if (!/v4/i.test(pesan)) {
+      toast(
+        "Backend masih versi lama. Tempel kode v4 lalu Deploy > New version.",
+        "error",
+      );
+    }
+  } catch (error) {
+    console.warn("Cek versi backend gagal:", error.message);
   }
-
-  const result = await response.json();
-
-  if (result && result.status === "error") {
-    throw new Error(result.message || "API mengembalikan error");
-  }
-
-  return result;
 }
 
 // ============================================================
@@ -114,7 +169,6 @@ async function apiPost(payload = {}) {
 // ============================================================
 function setupNetworkStatus() {
   updateNetworkStatus();
-
   window.addEventListener("online", updateNetworkStatus);
   window.addEventListener("offline", updateNetworkStatus);
 }
@@ -122,7 +176,6 @@ function setupNetworkStatus() {
 function updateNetworkStatus() {
   const dot = document.getElementById("connectionDot");
   const text = document.getElementById("connectionText");
-
   if (!dot || !text) return;
 
   if (navigator.onLine) {
@@ -171,26 +224,22 @@ async function ambilProduk() {
 
   try {
     const result = await apiGet({ action: "produk" });
-
     const data = Array.isArray(result.data) ? result.data : [];
 
     produk = data.map(normalizeProduk).filter((item) => item.id);
 
     renderKategori();
     renderProduk();
-
     sinkronkanKeranjangDenganStok();
-
     updateNetworkStatus();
   } catch (error) {
     console.error("GAGAL LOAD PRODUK:", error);
-
     toast(
       error.message || "Gagal mengambil produk dari Google Spreadsheet",
       "error",
     );
+    renderProdukError(error.message);
 
-    // tetap tandai offline
     const dot = document.getElementById("connectionDot");
     const text = document.getElementById("connectionText");
     if (dot && text) {
@@ -205,14 +254,98 @@ async function ambilProduk() {
 }
 
 // ============================================================
-// NORMALIZE PRODUK
+// PANEL ERROR + DIAGNOSA KONEKSI
 // ============================================================
+function renderProdukError(pesan) {
+  const container = document.getElementById("produk");
+  if (!container) return;
+
+  container.removeAttribute("aria-busy");
+  container.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">⚠️</div>
+      <h3>Tidak dapat terhubung ke server</h3>
+      <p>${escapeHTML(pesan || "Gagal memuat produk")}</p>
+      <p id="diagnosaHasil" style="margin-top:10px;font-size:13px;line-height:1.6">
+        Memeriksa penyebab…
+      </p>
+      <button type="button" class="refresh-btn" style="margin:14px auto 0"
+        onclick="refreshProduk()">↻ Coba Lagi</button>
+    </div>
+  `;
+
+  diagnosaKoneksi().then((hasil) => {
+    const el = document.getElementById("diagnosaHasil");
+    if (el) el.innerHTML = hasil;
+  });
+}
+
+// Membedakan: internet mati / server tak terjangkau / diblokir (CORS, login)
+// / kode lama / spreadsheet tidak terhubung.
+async function diagnosaKoneksi() {
+  if (!navigator.onLine) {
+    return "<b>Perangkat sedang offline.</b> Periksa WiFi/data internet.";
+  }
+
+  const url = `${API}?action=health&_=${Date.now()}`;
+
+  // 1. Apakah server Google bisa dijangkau sama sekali?
+  try {
+    await fetch(url, { mode: "no-cors", cache: "no-store" });
+  } catch (e) {
+    return (
+      "<b>Server Google tidak terjangkau.</b> Penyebab umum: internet bermasalah, " +
+      "AdBlock/antivirus/VPN memblokir <code>script.google.com</code>, atau URL API salah."
+    );
+  }
+
+  // 2. Bisa dijangkau, tetapi apakah balasannya boleh dibaca?
+  let teks = "";
+  try {
+    const r = await fetch(url, { cache: "no-store" });
+    teks = await r.text();
+  } catch (e) {
+    return (
+      "<b>Server terjangkau, tetapi balasannya diblokir.</b> Hampir pasti pengaturan deploy salah: " +
+      "buka Apps Script &gt; Deploy &gt; Manage deployments &gt; Edit, pastikan " +
+      "<b>Execute as: Me</b> dan <b>Who has access: Anyone</b> (bukan &quot;Anyone with Google account&quot;), " +
+      "lalu Version: <b>New version</b> &gt; Deploy."
+    );
+  }
+
+  let json;
+  try {
+    json = JSON.parse(teks);
+  } catch (e) {
+    if (/accounts\.google|Sign in|Masuk/i.test(teks)) {
+      return "<b>Server meminta login Google.</b> Ubah Who has access menjadi <b>Anyone</b> lalu deploy New version.";
+    }
+    if (/doGet/i.test(teks)) {
+      return "<b>Fungsi doGet tidak ditemukan.</b> Kode backend belum tersimpan/ter-deploy. Tempel kode v4, Simpan, lalu Deploy New version.";
+    }
+    return "<b>Server membalas bukan JSON.</b> Pastikan URL berakhiran <code>/exec</code> dan kode backend v4 sudah di-deploy.";
+  }
+
+  if (json.status === "error") {
+    return `<b>Backend aktif tetapi error:</b> ${escapeHTML(json.message || "")}`;
+  }
+
+  if (!/v4/i.test(String(json.message || ""))) {
+    return "<b>Backend masih versi lama.</b> Deploy &gt; Manage deployments &gt; Edit &gt; Version: New version.";
+  }
+
+  return (
+    "Server OK (v4). Kegagalan kemungkinan di baca sheet: pastikan script dibuat dari " +
+    "<b>Extensions &gt; Apps Script</b> di dalam spreadsheet, nama sheet <b>Produk</b> benar, " +
+    "dan jalankan <code>setupAwal()</code> sekali (beri izin akses)."
+  );
+}
+
 function normalizeProduk(item) {
   return {
     id: String(
       item.id_produk ?? item.ID_Produk ?? item["ID Produk"] ?? item.id ?? "",
     ),
-
     nama: String(
       item.nama_produk ??
         item.Nama_Produk ??
@@ -220,13 +353,10 @@ function normalizeProduk(item) {
         item.nama ??
         "",
     ),
-
     kategori: String(item.kategori ?? item.Kategori ?? "Lainnya"),
-
     hargaModal: toNumber(
       item.harga_modal ?? item.Harga_Modal ?? item["Harga Modal"] ?? 0,
     ),
-
     harga: toNumber(
       item.harga_jual ??
         item.Harga_Jual ??
@@ -234,15 +364,11 @@ function normalizeProduk(item) {
         item.harga ??
         0,
     ),
-
     stok: toNumber(item.stok ?? item.Stok ?? 0),
-
     stokMinimum: toNumber(
       item.stok_minimum ?? item.Stok_Minimum ?? item["Stok Minimum"] ?? 0,
     ),
-
     satuan: String(item.satuan ?? item.Satuan ?? "Pcs"),
-
     status: String(item.status ?? item.Status ?? "Aktif"),
   };
 }
@@ -306,7 +432,6 @@ function renderProduk() {
     );
   }
 
-  // update info "X dari Y produk"
   const info = document.getElementById("produkInfo");
   if (info) info.textContent = `${data.length} dari ${produk.length} produk`;
 
@@ -324,9 +449,6 @@ function renderProduk() {
   container.innerHTML = data.map(renderProductCard).join("");
 }
 
-// ============================================================
-// PRODUCT CARD
-// ============================================================
 function renderProductCard(item) {
   const stok = Number(item.stok) || 0;
   const stokMinimum = Number(item.stokMinimum) || 0;
@@ -350,27 +472,16 @@ function renderProductCard(item) {
   return `
     <div
       class="product-card ${habis ? "out-of-stock" : ""}"
-      ${habis ? "" : `onclick="tambahProduk('${escapeAttr(item.id)}')"`}
+      ${habis ? "" : `onclick="tambahProduk('${escapeHTML(escapeAttr(item.id))}')"`}
       tabindex="0"
       role="button"
       aria-label="${escapeHTML(item.nama)}"
     >
       <div class="product-info">
-        <div class="product-category">
-          ${escapeHTML(item.kategori)}
-        </div>
-
-        <h3 class="product-name">
-          ${escapeHTML(item.nama)}
-        </h3>
-
-        <div class="product-price">
-          ${formatRupiah(item.harga)}
-        </div>
-
-        <div class="stock-label ${stockClass}">
-          ${escapeHTML(stockText)}
-        </div>
+        <div class="product-category">${escapeHTML(item.kategori)}</div>
+        <h3 class="product-name">${escapeHTML(item.nama)}</h3>
+        <div class="product-price">${formatRupiah(item.harga)}</div>
+        <div class="stock-label ${stockClass}">${escapeHTML(stockText)}</div>
       </div>
     </div>
   `;
@@ -431,11 +542,9 @@ function sinkronkanKeranjangDenganStok() {
       const p = produk.find(
         (product) => String(product.id) === String(item.id_produk),
       );
-
       if (!p) return null;
 
       const stok = Number(p.stok) || 0;
-
       if (stok <= 0) return null;
 
       return {
@@ -477,81 +586,53 @@ function renderCart() {
   pushToCustomerDisplay();
 }
 
-// ============================================================
-// CART ITEM
-// ============================================================
 function renderCartItem(item) {
   const subtotal = Number(item.harga_jual) * Number(item.qty);
+  const idAman = escapeHTML(escapeAttr(item.id_produk));
 
   return `
     <div class="cart-item">
       <div class="cart-item-top">
         <div>
-          <div class="cart-item-name">
-            ${escapeHTML(item.nama_produk)}
-          </div>
-          <div class="cart-item-price">
-            ${formatRupiah(item.harga_jual)} / pcs
-          </div>
+          <div class="cart-item-name">${escapeHTML(item.nama_produk)}</div>
+          <div class="cart-item-price">${formatRupiah(item.harga_jual)} / pcs</div>
         </div>
 
         <button
           type="button"
           class="cart-item-remove"
-          onclick="hapusItem('${escapeAttr(item.id_produk)}')"
+          onclick="hapusItem('${idAman}')"
           aria-label="Hapus item"
         >×</button>
       </div>
 
       <div class="cart-item-bottom">
         <div class="qty-control">
-          <button
-            type="button"
-            class="qty-btn"
-            onclick="ubahQty('${escapeAttr(item.id_produk)}', -1)"
-            aria-label="Kurangi"
-          >−</button>
-
+          <button type="button" class="qty-btn" onclick="ubahQty('${idAman}', -1)" aria-label="Kurangi">−</button>
           <span class="qty-value">${Number(item.qty)}</span>
-
-          <button
-            type="button"
-            class="qty-btn"
-            onclick="ubahQty('${escapeAttr(item.id_produk)}', 1)"
-            aria-label="Tambah"
-          >+</button>
+          <button type="button" class="qty-btn" onclick="ubahQty('${idAman}', 1)" aria-label="Tambah">+</button>
         </div>
 
-        <div class="cart-item-subtotal">
-          ${formatRupiah(subtotal)}
-        </div>
+        <div class="cart-item-subtotal">${formatRupiah(subtotal)}</div>
       </div>
     </div>
   `;
 }
 
-// ============================================================
-// HAPUS ITEM
-// ============================================================
 function hapusItem(id) {
   keranjang = keranjang.filter((item) => String(item.id_produk) !== String(id));
   renderCart();
 }
 
-// ============================================================
-// UBAH QTY
-// ============================================================
 function ubahQty(id, perubahan) {
   const item = keranjang.find(
     (cartItem) => String(cartItem.id_produk) === String(id),
   );
-
   if (!item) return;
 
   const itemProduk = produk.find(
     (product) => String(product.id) === String(id),
   );
-
   if (!itemProduk) return;
 
   const qtyBaru = Number(item.qty) + Number(perubahan);
@@ -623,10 +704,7 @@ function setupSearch() {
   input.addEventListener("input", (event) => {
     searchQuery = event.target.value;
     renderProduk();
-
-    if (clear) {
-      clear.style.display = searchQuery ? "flex" : "none";
-    }
+    if (clear) clear.style.display = searchQuery ? "flex" : "none";
   });
 
   if (clear) {
@@ -641,7 +719,7 @@ function setupSearch() {
 }
 
 // ============================================================
-// QRIS MODAL (BARU)
+// QRIS MODAL
 // ============================================================
 function bayarQRIS() {
   if (!keranjang.length) {
@@ -653,7 +731,6 @@ function bayarQRIS() {
   const totalEl = document.getElementById("qrisTotal");
 
   if (totalEl) totalEl.textContent = formatRupiah(hitungTotal());
-
   if (modal) modal.classList.add("active");
 }
 
@@ -711,8 +788,7 @@ function bukaCashModal() {
 
 function tutupCashModal() {
   const modal = document.getElementById("cashModal");
-  if (!modal) return;
-  modal.classList.remove("active");
+  if (modal) modal.classList.remove("active");
 }
 
 // ============================================================
@@ -778,9 +854,6 @@ function quickCash(value) {
   setUangCash(Number(value) || 0);
 }
 
-// ============================================================
-// KONFIRMASI CASH
-// ============================================================
 function konfirmasiCash() {
   if (!keranjang.length) {
     toast("Keranjang masih kosong", "error");
@@ -811,7 +884,9 @@ const LABEL_TIPE_PESANAN = {
 };
 
 function ambilMetaPesanan() {
-  const aktif = document.querySelector("#orderTypeGroup .order-type-btn.active");
+  const aktif = document.querySelector(
+    "#orderTypeGroup .order-type-btn.active",
+  );
   const tipeKey = aktif ? aktif.dataset.orderType : "dine-in";
   const tipe = LABEL_TIPE_PESANAN[tipeKey] || "Dine In";
 
@@ -828,6 +903,28 @@ function ambilMetaPesanan() {
 }
 
 // ============================================================
+// REQUEST ID (anti dobel-simpan)
+// ============================================================
+function buatRequestId() {
+  const acak =
+    window.crypto && crypto.randomUUID
+      ? crypto.randomUUID()
+      : Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  return "POS-" + acak;
+}
+
+// Jika pembayaran yang SAMA diulang setelah gagal/timeout, request_id
+// yang sama dipakai lagi. Backend v4 akan mengenali dan tidak menyimpan
+// transaksi dua kali.
+function ambilRequestId(signature) {
+  if (percobaanBayar && percobaanBayar.signature === signature) {
+    return percobaanBayar.requestId;
+  }
+  percobaanBayar = { signature, requestId: buatRequestId() };
+  return percobaanBayar.requestId;
+}
+
+// ============================================================
 // SIMPAN TRANSAKSI
 // ============================================================
 async function prosesPembayaran(metode, uangDiterima = 0) {
@@ -835,6 +932,11 @@ async function prosesPembayaran(metode, uangDiterima = 0) {
 
   if (!keranjang.length) {
     toast("Keranjang masih kosong", "error");
+    return;
+  }
+
+  if (!navigator.onLine) {
+    toast("Anda sedang offline. Transaksi tidak dapat disimpan.", "error");
     return;
   }
 
@@ -848,16 +950,14 @@ async function prosesPembayaran(metode, uangDiterima = 0) {
     return;
   }
 
-  const total = hitungTotal();
+  const totalLokal = hitungTotal();
 
-  if (metodeFinal === "CASH" && Number(uangDiterima) < total) {
+  if (metodeFinal === "CASH" && Number(uangDiterima) < totalLokal) {
     toast("Uang diterima kurang dari total", "error");
     return;
   }
 
-  // ========================================================
-  // SNAPSHOT ITEM SEBELUM KERANJANG DIKOSONGKAN
-  // ========================================================
+  // Snapshot item sebelum keranjang dikosongkan
   const snapshotItems = keranjang.map((item) => ({
     id_produk: item.id_produk,
     nama_produk: item.nama_produk,
@@ -867,23 +967,23 @@ async function prosesPembayaran(metode, uangDiterima = 0) {
     subtotal: (Number(item.harga_jual) || 0) * (Number(item.qty) || 0),
   }));
 
-  const totalItem = snapshotItems.reduce(
-    (sum, item) => sum + Number(item.qty || 0),
-    0,
-  );
-
-  const tanggal = formatTanggalLengkap();
-  const uang = metodeFinal === "CASH" ? Number(uangDiterima) || 0 : total;
-  const kembali = metodeFinal === "CASH" ? Math.max(0, uang - total) : 0;
-
+  const uangLokal =
+    metodeFinal === "CASH" ? Number(uangDiterima) || 0 : totalLokal;
   const meta = ambilMetaPesanan();
+
+  const signature = JSON.stringify({
+    m: metodeFinal,
+    u: uangLokal,
+    i: snapshotItems.map((i) => [i.id_produk, i.qty]),
+  });
 
   const payload = {
     action: "simpan",
+    request_id: ambilRequestId(signature),
     kasir: namaKasir,
     metode_pembayaran: metodeFinal,
     status: "Lunas",
-    uang_diterima: metodeFinal === "CASH" ? uang : 0,
+    uang_diterima: metodeFinal === "CASH" ? uangLokal : 0,
     catatan: meta.catatan,
     items: snapshotItems.map((item) => ({
       id_produk: item.id_produk,
@@ -901,38 +1001,57 @@ async function prosesPembayaran(metode, uangDiterima = 0) {
       throw new Error(result?.message || "Transaksi gagal disimpan");
     }
 
-    // ======================================================
-    // INVOICE DARI SERVER
-    // ======================================================
+    // Transaksi tersimpan -> request_id tidak dipakai lagi
+    percobaanBayar = null;
+
     idTransaksiAktif = result.invoice || result.id || generateInvoice();
 
-    // ======================================================
-    // DATA STRUK LENGKAP
-    // ======================================================
+    // Data struk memakai angka dari SERVER (sumber kebenaran = spreadsheet)
+    const itemsServer =
+      Array.isArray(result.items) && result.items.length
+        ? result.items.map((i) => ({
+            id_produk: i.id_produk,
+            nama_produk: i.nama_produk,
+            harga_modal: Number(i.harga_modal) || 0,
+            harga_jual: Number(i.harga_jual) || 0,
+            qty: Number(i.qty) || 0,
+            subtotal: Number(i.subtotal) || 0,
+          }))
+        : snapshotItems;
+
+    const totalServer = Number(result.total ?? totalLokal);
+    const uangServer = Number(result.uang_diterima ?? uangLokal);
+    const kembaliServer = Number(
+      result.kembalian ??
+        (metodeFinal === "CASH" ? Math.max(0, uangServer - totalServer) : 0),
+    );
+
     const transaksiStruk = {
       id: idTransaksiAktif,
       invoice: idTransaksiAktif,
-      tanggal: result.waktu || result.tanggal || tanggal,
+      tanggal: result.waktu
+        ? formatWaktuServer(result.waktu)
+        : formatTanggalLengkap(),
       kasir: result.kasir || namaKasir,
-      items: snapshotItems,
-      total_item: totalItem,
-      subtotal: total,
+      items: itemsServer,
+      total_item:
+        Number(result.total_item) || itemsServer.reduce((s, i) => s + i.qty, 0),
+      subtotal: totalServer,
       diskon: Number(result.diskon) || 0,
       pajak: Number(result.pajak) || 0,
-      total: Number(result.total ?? total),
+      total: totalServer,
       metode: metodeFinal,
       metode_pembayaran: metodeFinal,
-      bayar: uang,
-      uang_diterima: uang,
-      kembali: kembali,
-      kembalian: kembali,
+      bayar: uangServer,
+      uang_diterima: uangServer,
+      kembali: kembaliServer,
+      kembalian: kembaliServer,
       status: result.status_transaksi || "Lunas",
       tipe_pesanan: meta.tipe,
       pelanggan: meta.pelanggan,
       catatan: meta.catatanUser,
     };
 
-    // simpan untuk Struk.html & cetak ulang
     lastTransaksi = transaksiStruk;
     try {
       localStorage.setItem("transaksi", JSON.stringify(transaksiStruk));
@@ -940,28 +1059,30 @@ async function prosesPembayaran(metode, uangDiterima = 0) {
       /* ignore */
     }
 
-    // ======================================================
-    // TAMPILKAN MODAL STRUK
-    // ======================================================
     tampilReceipt(transaksiStruk);
 
-    // ======================================================
-    // KOSONGKAN KERANJANG
-    // ======================================================
     keranjang = [];
     renderCart();
-
     tutupCashModal();
 
-    // ======================================================
-    // REFRESH PRODUK / STOK
-    // ======================================================
+    // Muat ulang stok dari spreadsheet
     await ambilProduk();
 
-    toast(result.message || "Transaksi berhasil disimpan", "success");
+    toast(
+      result.duplikat
+        ? "Transaksi sudah tersimpan sebelumnya (tidak dobel)"
+        : result.message || "Transaksi berhasil disimpan",
+      "success",
+    );
   } catch (error) {
     console.error("TRANSAKSI ERROR:", error);
     toast(error.message || "Gagal menyimpan transaksi", "error");
+
+    // Jika penyebabnya stok/harga berubah di spreadsheet, segarkan data
+    if (/stok|produk|tidak aktif/i.test(String(error.message))) {
+      percobaanBayar = null;
+      ambilProduk();
+    }
   } finally {
     sedangMemproses = false;
     tampilLoading(false);
@@ -982,9 +1103,7 @@ function buatHTMLStruk(data) {
 
       return `
         <div class="r-item">
-          <div class="r-item-name">${escapeHTML(
-            item.nama_produk || item.nama || "-",
-          )}</div>
+          <div class="r-item-name">${escapeHTML(item.nama_produk || item.nama || "-")}</div>
           <div class="r-row">
             <span>${qty} x ${angkaID(harga)}</span>
             <span>${angkaID(subtotal)}</span>
@@ -1018,15 +1137,9 @@ function buatHTMLStruk(data) {
 
       <div class="r-line"></div>
 
-      <div class="r-row r-small">
-        <span>Invoice</span><span>${escapeHTML(invoice)}</span>
-      </div>
-      <div class="r-row r-small">
-        <span>Waktu</span><span>${escapeHTML(tanggal)}</span>
-      </div>
-      <div class="r-row r-small">
-        <span>Kasir</span><span>${escapeHTML(kasir)}</span>
-      </div>
+      <div class="r-row r-small"><span>Invoice</span><span>${escapeHTML(invoice)}</span></div>
+      <div class="r-row r-small"><span>Waktu</span><span>${escapeHTML(tanggal)}</span></div>
+      <div class="r-row r-small"><span>Kasir</span><span>${escapeHTML(kasir)}</span></div>
       ${
         data.tipe_pesanan
           ? `<div class="r-row r-small"><span>Tipe</span><span>${escapeHTML(data.tipe_pesanan)}</span></div>`
@@ -1044,33 +1157,19 @@ function buatHTMLStruk(data) {
 
       <div class="r-line"></div>
 
-      <div class="r-row">
-        <span>Total Item</span><span>${totalItem}</span>
-      </div>
-      <div class="r-row r-bold">
-        <span>TOTAL</span><span>${formatRupiah(total)}</span>
-      </div>
+      <div class="r-row"><span>Total Item</span><span>${totalItem}</span></div>
+      <div class="r-row r-bold"><span>TOTAL</span><span>${formatRupiah(total)}</span></div>
 
       ${
         metode === "CASH"
           ? `
-            <div class="r-row">
-              <span>Tunai</span><span>${formatRupiah(bayar)}</span>
-            </div>
-            <div class="r-row">
-              <span>Kembali</span><span>${formatRupiah(kembali)}</span>
-            </div>
+            <div class="r-row"><span>Tunai</span><span>${formatRupiah(bayar)}</span></div>
+            <div class="r-row"><span>Kembali</span><span>${formatRupiah(kembali)}</span></div>
           `
-          : `
-            <div class="r-row">
-              <span>Metode</span><span>${escapeHTML(metode)}</span>
-            </div>
-          `
+          : `<div class="r-row"><span>Metode</span><span>${escapeHTML(metode)}</span></div>`
       }
 
-      <div class="r-row">
-        <span>Status</span><span>${escapeHTML(status)}</span>
-      </div>
+      <div class="r-row"><span>Status</span><span>${escapeHTML(status)}</span></div>
 
       ${
         data.catatan
@@ -1082,9 +1181,7 @@ function buatHTMLStruk(data) {
 
       <div class="r-center r-small">${escapeHTML(FOOTER_STRUK)}</div>
       <div class="r-center r-small">${escapeHTML(CATATAN_STRUK)}</div>
-      <div class="r-center r-small" style="margin-top:6px">
-        *** ${escapeHTML(invoice)} ***
-      </div>
+      <div class="r-center r-small" style="margin-top:6px">*** ${escapeHTML(invoice)} ***</div>
     </div>
   `;
 }
@@ -1134,14 +1231,10 @@ function cetakStrukTerakhir() {
   const container = document.getElementById("receiptContainer");
   if (!container) return;
 
-  // isi ulang (jaga-jaga)
   container.innerHTML = buatHTMLStruk(lastTransaksi);
 
-  // beri jeda agar layout siap, lalu print
   setTimeout(() => {
     window.print();
-
-    // bersihkan setelah print
     setTimeout(() => {
       container.innerHTML = "";
     }, 1500);
@@ -1169,9 +1262,6 @@ function bukaStruk() {
   toast("Struk siap dicetak", "success");
 }
 
-// ============================================================
-// PRINT RECEIPT LANGSUNG (via Struk.html)
-// ============================================================
 function printReceipt() {
   const transaksi = localStorage.getItem("transaksi");
 
@@ -1181,10 +1271,7 @@ function printReceipt() {
   }
 
   const win = window.open("struk.html", "_blank");
-
-  if (!win) {
-    toast("Popup diblokir browser", "error");
-  }
+  if (!win) toast("Popup diblokir browser", "error");
 }
 
 // ============================================================
@@ -1391,7 +1478,6 @@ function buatHTMLDisplay(payload = null) {
 }
 
 function bukaCustomerDisplay() {
-  // push current state dulu
   pushToCustomerDisplay();
 
   const win = window.open(
@@ -1414,7 +1500,7 @@ function bukaCustomerDisplay() {
 }
 
 // ============================================================
-// DISPLAY VIA API (tetap dipertahankan)
+// DISPLAY VIA API (sheet Display)
 // ============================================================
 async function ambilDisplay() {
   try {
@@ -1428,7 +1514,7 @@ async function ambilDisplay() {
 
 async function resetDisplay() {
   try {
-    const result = await apiGet({ action: "resetDisplay" });
+    const result = await apiPost({ action: "resetDisplay" });
 
     if (result.status === "success") {
       toast(result.message || "Display berhasil direset", "success");
@@ -1490,14 +1576,61 @@ async function ambilDashboard(tanggal = "") {
   }
 }
 
-async function lunaskanTransaksi(id) {
+// Endpoint baru backend v4
+async function ambilLaporanHarian(tanggal = "") {
+  try {
+    const result = await apiGet({ action: "laporanHarian", tanggal });
+    return result.data || {};
+  } catch (error) {
+    toast(error.message || "Gagal mengambil laporan harian", "error");
+    return {};
+  }
+}
+
+async function ambilLaporanBulanan(bulan = "") {
+  try {
+    const result = await apiGet({ action: "laporanBulanan", bulan });
+    return result.data || {};
+  } catch (error) {
+    toast(error.message || "Gagal mengambil laporan bulanan", "error");
+    return {};
+  }
+}
+
+async function ambilTopProduk(periode = "", limit = 5) {
+  try {
+    const result = await apiGet({ action: "topProduk", periode, limit });
+    return Array.isArray(result.data) ? result.data : [];
+  } catch (error) {
+    toast(error.message || "Gagal mengambil top produk", "error");
+    return [];
+  }
+}
+
+async function ambilStokMenipis() {
+  try {
+    const result = await apiGet({ action: "stokMenipis" });
+    return Array.isArray(result.data) ? result.data : [];
+  } catch (error) {
+    toast(error.message || "Gagal mengambil stok menipis", "error");
+    return [];
+  }
+}
+
+// opts (opsional): { metode: "CASH", uang_diterima: 50000 }
+async function lunaskanTransaksi(id, opts = {}) {
   if (!id) {
     toast("ID transaksi tidak ditemukan", "error");
     return null;
   }
 
   try {
-    const result = await apiGet({ action: "lunas", id });
+    const result = await apiPost({
+      action: "lunas",
+      id,
+      metode_pembayaran: opts.metode || opts.metode_pembayaran,
+      uang_diterima: opts.uang_diterima,
+    });
 
     if (result.status !== "success") {
       throw new Error(result.message || "Gagal melunaskan transaksi");
@@ -1517,11 +1650,11 @@ async function batalkanTransaksi(id) {
     return null;
   }
 
-  const konfirmasi = window.confirm("Batalkan transaksi ini?");
-  if (!konfirmasi) return null;
+  if (!window.confirm("Batalkan transaksi ini? Stok akan dikembalikan."))
+    return null;
 
   try {
-    const result = await apiGet({ action: "batal", id });
+    const result = await apiPost({ action: "batal", id });
 
     if (result.status !== "success") {
       throw new Error(result.message || "Gagal membatalkan transaksi");
@@ -1541,19 +1674,19 @@ async function batalkanTransaksi(id) {
 // ============================================================
 function resetTransaksi() {
   if (keranjang.length) {
-    const yakin = window.confirm("Kosongkan semua item di keranjang?");
-    if (!yakin) return;
+    if (!window.confirm("Kosongkan semua item di keranjang?")) return;
   }
 
   keranjang = [];
   idTransaksiAktif = "";
+  percobaanBayar = null;
 
   renderCart();
   tutupCashModal();
 }
 
 // ============================================================
-// TAMBAH PRODUK SERVER
+// PRODUK (SERVER)
 // ============================================================
 async function tambahProdukServer(data) {
   try {
@@ -1582,9 +1715,6 @@ async function tambahProdukServer(data) {
   }
 }
 
-// ============================================================
-// UPDATE PRODUK SERVER
-// ============================================================
 async function updateProdukServer(data) {
   try {
     const result = await apiPost({ action: "updateProduk", ...data });
@@ -1602,9 +1732,6 @@ async function updateProdukServer(data) {
   }
 }
 
-// ============================================================
-// HAPUS / NONAKTIFKAN PRODUK
-// ============================================================
 async function hapusProdukServer(id) {
   if (!id) return null;
 
@@ -1638,17 +1765,13 @@ async function stokKeluarServer(id, qty) {
 async function updateStokServer(action, id, qty) {
   const jumlah = Number(qty);
 
-  if (!Number.isFinite(jumlah) || jumlah <= 0) {
-    toast("Jumlah stok harus lebih dari 0", "error");
+  if (!Number.isInteger(jumlah) || jumlah <= 0) {
+    toast("Jumlah stok harus berupa angka bulat lebih dari 0", "error");
     return null;
   }
 
   try {
-    const result = await apiPost({
-      action,
-      id_produk: id,
-      qty: jumlah,
-    });
+    const result = await apiPost({ action, id_produk: id, qty: jumlah });
 
     if (result.status !== "success") {
       throw new Error(result.message || "Gagal memperbarui stok");
@@ -1664,7 +1787,7 @@ async function updateStokServer(action, id, qty) {
 }
 
 // ============================================================
-// FORMAT RUPIAH
+// FORMAT
 // ============================================================
 function formatRupiah(value) {
   const number = Number(value) || 0;
@@ -1676,19 +1799,12 @@ function formatRupiah(value) {
   }).format(number);
 }
 
-// ============================================================
-// ANGKA (tanpa Rp) — untuk baris "qty x harga" di struk
-// ============================================================
 function angkaID(value) {
   return new Intl.NumberFormat("id-ID").format(Math.round(Number(value) || 0));
 }
 
-// ============================================================
-// FORMAT TANGGAL
-// ============================================================
 function formatTanggalLengkap() {
-  const now = new Date();
-  return now.toLocaleString("id-ID", {
+  return new Date().toLocaleString("id-ID", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -1698,9 +1814,14 @@ function formatTanggalLengkap() {
   });
 }
 
-// ============================================================
-// GENERATE INVOICE FALLBACK
-// ============================================================
+// "2026-11-20 14:05:09" (dari server) -> "20/11/2026 14:05:09"
+function formatWaktuServer(text) {
+  const m = String(text || "").match(
+    /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}:\d{2}:\d{2})/,
+  );
+  return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}` : String(text || "");
+}
+
 function generateInvoice() {
   const now = new Date();
   const tahun = now.getFullYear();
@@ -1714,10 +1835,7 @@ function generateInvoice() {
 // NUMBER
 // ============================================================
 function toNumber(value) {
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? value : 0;
-  }
-
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
   if (value === null || value === undefined || value === "") return 0;
 
   const cleaned = String(value).replace(/[^\d.-]/g, "");
@@ -1725,9 +1843,6 @@ function toNumber(value) {
   return Number.isFinite(number) ? number : 0;
 }
 
-// ============================================================
-// PARSE UANG
-// ============================================================
 function parseMoneyInput(value) {
   if (typeof value === "number") return value || 0;
   const cleaned = String(value || "").replace(/[^\d]/g, "");
@@ -1735,7 +1850,7 @@ function parseMoneyInput(value) {
 }
 
 // ============================================================
-// ESCAPE HTML
+// ESCAPE
 // ============================================================
 function escapeHTML(value) {
   return String(value ?? "")
@@ -1746,9 +1861,7 @@ function escapeHTML(value) {
     .replace(/'/g, "&#039;");
 }
 
-// ============================================================
-// ESCAPE ATTRIBUTE (untuk onclick inline)
-// ============================================================
+// untuk string di dalam onclick='...' (dipakai bersama escapeHTML)
 function escapeAttr(value) {
   return String(value ?? "")
     .replace(/\\/g, "\\\\")
@@ -1776,7 +1889,7 @@ function toast(message, type = "info") {
   setTimeout(() => {
     item.classList.add("hide");
     setTimeout(() => item.remove(), 300);
-  }, 3000);
+  }, 3500);
 }
 
 // ============================================================
@@ -1861,6 +1974,7 @@ function setupKeyboard() {
 // GLOBAL EXPORTS
 // ============================================================
 window.ambilProduk = ambilProduk;
+window.diagnosaKoneksi = diagnosaKoneksi;
 window.pilihKategori = pilihKategori;
 window.tambahProduk = tambahProduk;
 window.ubahQty = ubahQty;
@@ -1893,6 +2007,10 @@ window.resetDisplay = resetDisplay;
 window.ambilTransaksi = ambilTransaksi;
 window.ambilDetailTransaksi = ambilDetailTransaksi;
 window.ambilDashboard = ambilDashboard;
+window.ambilLaporanHarian = ambilLaporanHarian;
+window.ambilLaporanBulanan = ambilLaporanBulanan;
+window.ambilTopProduk = ambilTopProduk;
+window.ambilStokMenipis = ambilStokMenipis;
 window.lunaskanTransaksi = lunaskanTransaksi;
 window.batalkanTransaksi = batalkanTransaksi;
 
@@ -1909,7 +2027,7 @@ window.formatRupiah = formatRupiah;
 // DEBUG
 // ============================================================
 console.log(
-  "%c FYNCOFFEE POS V7 ",
+  "%c FYNCOFFEE POS V9 ",
   "background:#111827;color:white;padding:8px 12px;border-radius:6px;font-weight:bold;",
 );
 console.log("Backend:", API);
