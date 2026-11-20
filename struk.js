@@ -51,7 +51,15 @@
    * Format tanggal + jam.
    */
   function formatTanggal(date) {
-    const d = date instanceof Date ? date : new Date(date);
+    let d = date instanceof Date ? date : new Date(date);
+
+    /* Format id-ID dari POS: "20/11/2026 14.32.10" atau "20/11/2026, 14:32:10" */
+    if (isNaN(d.getTime()) && typeof date === "string") {
+      const m = date.match(
+        /^(\d{1,2})\/(\d{1,2})\/(\d{4})[,\s]+(\d{1,2})[.:](\d{2})(?:[.:](\d{2}))?/,
+      );
+      if (m) d = new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +(m[6] || 0));
+    }
     if (isNaN(d.getTime())) return "-";
 
     const hari = [
@@ -166,6 +174,10 @@
     const fromLS = getLocal("fyncoffee_last_struk");
     if (fromLS && typeof fromLS === "object") return fromLS;
 
+    /* --- 2b. Kunci "transaksi" yang disimpan oleh script.js (POS) --- */
+    const fromPOS = getLocal("transaksi");
+    if (fromPOS && typeof fromPOS === "object") return fromPOS;
+
     /* --- 3. Dari query string --- */
     const q = getQueryParams();
     if (q.data) {
@@ -233,9 +245,9 @@
     }
 
     items.forEach((it) => {
-      const nama = escapeHtml(it.nama || it.name || "Produk");
+      const nama = escapeHtml(it.nama || it.name || it.nama_produk || "Produk");
       const qty = toNumber(it.qty || it.jumlah || it.quantity || 1);
-      const harga = toNumber(it.harga || it.price || it.hargaSatuan || 0);
+      const harga = toNumber(it.harga || it.price || it.hargaSatuan || it.harga_jual || 0);
       const subtotal = harga * qty;
 
       const note = it.catatan || it.note || "";
@@ -267,7 +279,7 @@
     if (!subtotal && items.length) {
       subtotal = items.reduce((s, it) => {
         const qty = toNumber(it.qty || it.jumlah || 1);
-        const harga = toNumber(it.harga || it.price || 0);
+        const harga = toNumber(it.harga || it.price || it.harga_jual || 0);
         return s + qty * harga;
       }, 0);
     }
