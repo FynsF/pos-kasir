@@ -1,270 +1,184 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    />
-    <meta name="theme-color" content="#0a0807" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0908" id="metaThemeColor" />
+    <meta name="color-scheme" content="dark light" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta
-      name="description"
-      content="FYNCOFFEE Point of Sale — Kasir, Keranjang, Pembayaran & Cetak Struk"
-    />
+    <meta name="description" content="FYNCOFFEE Point of Sale — Kasir, Riwayat Transaksi, Pembayaran & Cetak Struk" />
     <meta name="application-name" content="FYNCOFFEE POS" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="FYNCOFFEE" />
     <meta name="format-detection" content="telephone=no" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="FYNCOFFEE POS" />
-    <meta property="og:description" content="Point of Sale FYNCOFFEE" />
-
     <title>FYNCOFFEE POS</title>
 
-    <!-- Logo FYNCOFFEE juga dipakai sebagai favicon browser -->
     <link rel="icon" type="image/png" href="Logo no background.png" />
     <link rel="apple-touch-icon" href="Logo no background.png" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Terapkan tema SEBELUM render agar tidak berkedip -->
+    <script>
+      (function () {
+        var t = null;
+        try { t = localStorage.getItem("fyncoffee_theme"); } catch (e) {}
+        if (t !== "light" && t !== "dark") {
+          t = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+        var m = document.getElementById("metaThemeColor");
+        if (m) m.setAttribute("content", t === "light" ? "#f6f1e9" : "#0b0908");
+      })();
+    </script>
 
     <link rel="stylesheet" href="style.css" />
   </head>
 
-  <body>
+  <body data-view="kasir">
+    <!-- ============ SPRITE IKON ============ -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+      <defs>
+        <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+        <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></symbol>
+        <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+        <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+        <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
+        <symbol id="i-volume-off" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6M16 9l6 6"/></symbol>
+        <symbol id="i-maximize" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+        <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 7H6"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/></symbol>
+        <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+        <symbol id="i-cash" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></symbol>
+        <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h3M20 17v4"/></symbol>
+        <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
+        <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M5 2h14v20l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h4"/></symbol>
+        <symbol id="i-printer" viewBox="0 0 24 24"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="9" rx="2"/><path d="M7 14h10v7H7z"/></symbol>
+        <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+        <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+        <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+        <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+        <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol>
+        <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+        <symbol id="i-utensils" viewBox="0 0 24 24"><path d="M5 3v8a2 2 0 0 0 2 2v8M9 3v8M7 3v8"/><path d="M17 21V3c-2.5 1.5-4 4.5-4 8h4"/></symbol>
+        <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/></symbol>
+        <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 6h11v10H2zM13 9h4l3 3v4h-7"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+        <symbol id="i-coffee" viewBox="0 0 24 24"><path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h2a2 2 0 0 1 0 4h-2M7 2v3M11 2v3M15 2v3"/></symbol>
+        <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+        <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v5M12 18v.01"/></symbol>
+        <symbol id="i-note" viewBox="0 0 24 24"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4"/></symbol>
+        <symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></symbol>
+        <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4 10 14M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+        <symbol id="i-trend" viewBox="0 0 24 24"><path d="m3 17 6-6 4 4 8-8M15 7h6v6"/></symbol>
+        <symbol id="i-box" viewBox="0 0 24 24"><path d="m3 7 9-4 9 4v10l-9 4-9-4z"/><path d="m3 7 9 4 9-4M12 11v10"/></symbol>
+      </defs>
+    </svg>
+
     <a href="#produk" class="skip-link">Langsung ke daftar produk</a>
 
     <!-- ============ TOPBAR ============ -->
     <header class="topbar">
       <div class="brand">
-        <div class="brand-logo">
-          <img
-            src="Logo no background.png"
-            alt="Logo FYNCOFFEE"
-            style="
-              width: 100%;
-              height: 100%;
-              object-fit: contain;
-              display: block;
-            "
-          />
-        </div>
+        <div class="brand-logo"><img src="Logo no background.png" alt="Logo FYNCOFFEE" /></div>
         <div class="brand-info">
           <div class="brand-title">FYNCOFFEE</div>
-          <div class="brand-subtitle">POINT OF SALE</div>
+          <div class="brand-subtitle">Point of Sale</div>
         </div>
       </div>
+
+      <nav class="view-tabs" role="tablist" aria-label="Halaman">
+        <button type="button" class="view-tab active" id="tabKasir" role="tab" aria-selected="true" data-view="kasir" title="Kasir (F4)">
+          <svg class="i"><use href="#i-cart" /></svg><span>Kasir</span>
+        </button>
+        <button type="button" class="view-tab" id="tabRiwayat" role="tab" aria-selected="false" data-view="riwayat" title="Riwayat transaksi (F4)">
+          <svg class="i"><use href="#i-history" /></svg><span>Riwayat</span>
+        </button>
+      </nav>
 
       <div class="topbar-right">
         <div class="clock" id="clock" aria-label="Waktu">00:00:00</div>
 
-        <button
-          type="button"
-          class="top-icon-btn"
-          id="btnSoundToggle"
-          onclick="toggleSound()"
-          title="Notifikasi suara"
-          aria-label="Toggle notifikasi suara"
-        >
-          🔊
+        <button type="button" class="icon-btn" id="btnTheme" title="Ganti tema terang/gelap" aria-label="Ganti tema">
+          <svg class="i i-sun"><use href="#i-sun" /></svg>
+          <svg class="i i-moon"><use href="#i-moon" /></svg>
         </button>
-
-        <button
-          type="button"
-          class="top-icon-btn"
-          id="btnFullscreen"
-          onclick="togglePOSFullscreen()"
-          title="Fullscreen"
-          aria-label="Toggle fullscreen"
-        >
-          ⛶
+        <button type="button" class="icon-btn" id="btnSoundToggle" title="Suara notifikasi" aria-label="Suara notifikasi">
+          <svg class="i i-on"><use href="#i-volume" /></svg>
+          <svg class="i i-off"><use href="#i-volume-off" /></svg>
+        </button>
+        <button type="button" class="icon-btn hide-sm" id="btnFullscreen" title="Layar penuh" aria-label="Layar penuh">
+          <svg class="i"><use href="#i-maximize" /></svg>
         </button>
 
         <div class="connection" role="status" aria-live="polite">
-          <span
-            class="connection-dot"
-            id="connectionDot"
-            aria-hidden="true"
-          ></span>
+          <span class="connection-dot" id="connectionDot" aria-hidden="true"></span>
           <span id="connectionText">Online</span>
         </div>
       </div>
     </header>
 
-    <!-- ============ MAIN APP ============ -->
-    <main class="app">
-      <!-- PRODUCTS -->
+    <!-- ============ VIEW: KASIR ============ -->
+    <main class="app" id="viewKasir">
       <section class="products-section" aria-label="Daftar Produk">
         <div class="toolbar">
           <div class="search-wrapper">
-            <span class="search-icon" aria-hidden="true">🔍</span>
-            <input
-              type="text"
-              id="searchProduk"
-              class="search-input"
-              placeholder="Cari nama produk… (F1)"
-              autocomplete="off"
-              spellcheck="false"
-              aria-label="Cari produk"
-            />
-            <button
-              type="button"
-              id="clearSearch"
-              class="clear-search"
-              aria-label="Hapus pencarian"
-            >
-              ×
-            </button>
+            <svg class="i search-icon"><use href="#i-search" /></svg>
+            <input type="text" id="searchProduk" class="search-input" placeholder="Cari produk…  (F1)" autocomplete="off" spellcheck="false" aria-label="Cari produk" />
+            <button type="button" id="clearSearch" class="clear-search" aria-label="Hapus pencarian"><svg class="i"><use href="#i-x" /></svg></button>
           </div>
-
-          <button
-            type="button"
-            class="refresh-btn"
-            id="btnRefresh"
-            onclick="refreshProduk()"
-            aria-label="Muat ulang daftar produk"
-          >
-            <span id="refreshIcon">↻</span>
-            <span>Refresh</span>
+          <button type="button" class="btn btn-ghost" id="btnRefresh" aria-label="Muat ulang daftar produk">
+            <svg class="i" id="refreshIcon"><use href="#i-refresh" /></svg><span class="hide-sm">Refresh</span>
           </button>
         </div>
 
-        <div
-          class="category-wrapper"
-          id="kategoriProduk"
-          role="tablist"
-          aria-label="Kategori produk"
-        ></div>
+        <div class="category-wrapper" id="kategoriProduk" role="tablist" aria-label="Kategori produk"></div>
 
         <div class="section-heading">
           <h2>Menu Produk</h2>
           <span id="produkInfo">Memuat…</span>
         </div>
 
-        <div
-          class="product-grid"
-          id="produk"
-          role="list"
-          aria-live="polite"
-          aria-busy="true"
-        >
-          <div class="skeleton" aria-hidden="true">
-            <span style="width: 40%"></span><span style="width: 80%"></span
-            ><span style="width: 55%"></span>
-          </div>
-          <div class="skeleton" aria-hidden="true">
-            <span style="width: 40%"></span><span style="width: 80%"></span
-            ><span style="width: 55%"></span>
-          </div>
-          <div class="skeleton" aria-hidden="true">
-            <span style="width: 40%"></span><span style="width: 80%"></span
-            ><span style="width: 55%"></span>
-          </div>
-          <div class="skeleton" aria-hidden="true">
-            <span style="width: 40%"></span><span style="width: 80%"></span
-            ><span style="width: 55%"></span>
-          </div>
+        <div class="product-grid" id="produk" role="list" aria-live="polite" aria-busy="true">
+          <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+          <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
         </div>
       </section>
 
-      <!-- CART -->
-      <aside
-        class="cart-section"
-        id="cartSection"
-        aria-label="Keranjang pesanan"
-      >
+      <aside class="cart-section" id="cartSection" aria-label="Keranjang pesanan">
         <div class="cart-header">
           <div class="cart-title">Pesanan</div>
-          <div style="display: flex; align-items: center; gap: 10px">
-            <div
-              class="cart-count"
-              id="cartBadge"
-              aria-live="polite"
-              aria-label="Jumlah item"
-            >
-              0
-            </div>
-            <button
-              type="button"
-              class="cart-close"
-              onclick="closeMobileCart()"
-              aria-label="Tutup keranjang"
-            >
-              ×
-            </button>
+          <div class="cart-header-right">
+            <div class="cart-count" id="cartBadge" aria-live="polite">0</div>
+            <button type="button" class="icon-btn cart-close" id="btnCartClose" aria-label="Tutup keranjang"><svg class="i"><use href="#i-x" /></svg></button>
           </div>
         </div>
 
-        <!-- ORDER META: Tipe Pesanan + Customer + Note -->
         <div class="order-meta">
-          <div>
-            <div class="order-type-label">Tipe Pesanan</div>
-            <div class="order-type-group" id="orderTypeGroup">
-              <button
-                type="button"
-                class="order-type-btn active"
-                data-order-type="dine-in"
-              >
-                <span class="icon">🍽️</span>
-                <span>Dine In</span>
-              </button>
-              <button
-                type="button"
-                class="order-type-btn"
-                data-order-type="take-away"
-              >
-                <span class="icon">🥡</span>
-                <span>Take Away</span>
-              </button>
-              <button
-                type="button"
-                class="order-type-btn"
-                data-order-type="delivery"
-              >
-                <span class="icon">🛵</span>
-                <span>Delivery</span>
-              </button>
-            </div>
+          <div class="order-type-group" id="orderTypeGroup" role="radiogroup" aria-label="Tipe pesanan">
+            <button type="button" class="order-type-btn active" data-order-type="dine-in" role="radio" aria-checked="true"><svg class="i"><use href="#i-utensils" /></svg><span>Dine In</span></button>
+            <button type="button" class="order-type-btn" data-order-type="take-away" role="radio" aria-checked="false"><svg class="i"><use href="#i-bag" /></svg><span>Take Away</span></button>
+            <button type="button" class="order-type-btn" data-order-type="delivery" role="radio" aria-checked="false"><svg class="i"><use href="#i-truck" /></svg><span>Delivery</span></button>
           </div>
-
-          <div class="customer-row">
-            <input
-              type="text"
-              id="customerNameInput"
-              class="customer-input"
-              placeholder="Nama pelanggan (opsional)"
-              autocomplete="off"
-              spellcheck="false"
-              maxlength="40"
-            />
-          </div>
-
-          <div class="customer-row">
-            <input
-              type="text"
-              id="orderNoteInput"
-              class="note-input"
-              placeholder="Catatan pesanan (opsional)"
-              autocomplete="off"
-              maxlength="80"
-            />
-          </div>
+          <label class="field-icon"><svg class="i"><use href="#i-user" /></svg>
+            <input type="text" id="customerNameInput" placeholder="Nama pelanggan (opsional)" autocomplete="off" spellcheck="false" maxlength="40" />
+          </label>
+          <label class="field-icon"><svg class="i"><use href="#i-note" /></svg>
+            <input type="text" id="orderNoteInput" placeholder="Catatan pesanan (opsional)" autocomplete="off" maxlength="80" />
+          </label>
         </div>
 
         <div class="cart-content">
           <div class="cart-empty" id="cartEmpty">
             <div>
-              <div class="cart-empty-icon" aria-hidden="true">🛒</div>
+              <div class="cart-empty-icon"><svg class="i"><use href="#i-coffee" /></svg></div>
               <h3>Keranjang kosong</h3>
               <p>Pilih produk untuk membuat pesanan.</p>
             </div>
@@ -273,873 +187,196 @@
         </div>
 
         <div class="cart-footer">
-          <div class="summary-row">
-            <span>Jumlah Item</span>
-            <strong id="totalItem">0 item</strong>
-          </div>
-          <div class="summary-row total">
-            <span>Total</span>
-            <strong id="total">Rp 0</strong>
-          </div>
-
-          <div class="payment-title">Metode Pembayaran</div>
+          <div class="summary-row"><span>Jumlah item</span><strong id="totalItem">0 item</strong></div>
+          <div class="summary-row total"><span>Total</span><strong id="total">Rp 0</strong></div>
 
           <div class="payment-grid">
-            <button
-              type="button"
-              class="payment-btn cash"
-              id="btnCash"
-              onclick="bukaCashModal()"
-              aria-label="Bayar tunai (F2)"
-            >
-              💵 CASH
+            <button type="button" class="payment-btn cash" id="btnCash" aria-label="Bayar tunai (F2)">
+              <svg class="i"><use href="#i-cash" /></svg><span>Cash</span><kbd>F2</kbd>
             </button>
-            <button
-              type="button"
-              class="payment-btn qris"
-              id="btnQris"
-              onclick="bayarQRIS()"
-              aria-label="Bayar QRIS (F3)"
-            >
-              ▣ QRIS
+            <button type="button" class="payment-btn qris" id="btnQris" aria-label="Bayar QRIS (F3)">
+              <svg class="i"><use href="#i-qr" /></svg><span>QRIS</span><kbd>F3</kbd>
             </button>
           </div>
 
           <div class="secondary-actions">
-            <button
-              type="button"
-              class="secondary-btn"
-              onclick="resetTransaksi()"
-              aria-label="Kosongkan keranjang"
-            >
-              🗑 Kosongkan
-            </button>
-            <button
-              type="button"
-              class="secondary-btn"
-              onclick="bukaCustomerDisplay()"
-              aria-label="Buka customer display"
-            >
-              🖥 Display
-            </button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnKosongkan"><svg class="i"><use href="#i-trash" /></svg>Kosongkan</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnDisplay"><svg class="i"><use href="#i-monitor" /></svg>Display</button>
           </div>
         </div>
       </aside>
     </main>
 
-    <!-- BACKDROP + MOBILE BUTTON -->
-    <div
-      class="mobile-cart-backdrop"
-      id="mobileCartBackdrop"
-      onclick="toggleMobileCart()"
-      aria-hidden="true"
-    ></div>
+    <!-- ============ VIEW: RIWAYAT ============ -->
+    <main class="history" id="viewRiwayat" hidden>
+      <div class="history-head">
+        <div>
+          <h1>Riwayat Transaksi</h1>
+          <p id="hSubtitle">Semua transaksi yang pernah dicatat.</p>
+        </div>
+        <div class="history-head-actions">
+          <button type="button" class="btn btn-ghost" id="hBtnExport"><svg class="i"><use href="#i-file" /></svg><span>Ekspor CSV</span></button>
+          <button type="button" class="btn btn-ghost" id="hBtnRefresh"><svg class="i" id="hRefreshIcon"><use href="#i-refresh" /></svg><span>Muat ulang</span></button>
+        </div>
+      </div>
 
-    <button
-      type="button"
-      class="mobile-cart-button"
-      id="mobileCartButton"
-      onclick="toggleMobileCart()"
-      aria-label="Buka keranjang"
-    >
-      🛒
+      <section class="h-filters" aria-label="Filter riwayat">
+        <div class="chip-row" id="hPresets" role="group" aria-label="Rentang cepat">
+          <button type="button" class="chip" data-preset="today">Hari ini</button>
+          <button type="button" class="chip" data-preset="yesterday">Kemarin</button>
+          <button type="button" class="chip" data-preset="7d">7 hari</button>
+          <button type="button" class="chip" data-preset="month">Bulan ini</button>
+          <button type="button" class="chip" data-preset="all">Semua</button>
+        </div>
+
+        <div class="h-filter-grid">
+          <label class="h-field">
+            <span>Dari tanggal</span>
+            <div class="h-date"><svg class="i"><use href="#i-calendar" /></svg><input type="date" id="hFrom" /></div>
+          </label>
+          <label class="h-field">
+            <span>Sampai tanggal</span>
+            <div class="h-date"><svg class="i"><use href="#i-calendar" /></svg><input type="date" id="hTo" /></div>
+          </label>
+          <label class="h-field h-grow">
+            <span>Cari</span>
+            <div class="h-date"><svg class="i"><use href="#i-search" /></svg><input type="text" id="hSearch" placeholder="Invoice, pelanggan, produk…" autocomplete="off" spellcheck="false" /></div>
+          </label>
+          <label class="h-field">
+            <span>Metode</span>
+            <select id="hMetode"><option value="">Semua</option><option>CASH</option><option>QRIS</option></select>
+          </label>
+          <label class="h-field">
+            <span>Status</span>
+            <select id="hStatus"><option value="">Semua</option><option>Lunas</option><option>Pending</option><option>Batal</option></select>
+          </label>
+        </div>
+      </section>
+
+      <section class="h-stats" id="hStats" aria-label="Ringkasan"></section>
+
+      <section class="h-list" id="hList" aria-live="polite"></section>
+    </main>
+
+    <!-- ============ MOBILE ============ -->
+    <div class="backdrop" id="mobileCartBackdrop" aria-hidden="true"></div>
+    <button type="button" class="mobile-cart-button" id="mobileCartButton" aria-label="Buka keranjang">
+      <svg class="i"><use href="#i-cart" /></svg>
       <span class="mobile-cart-badge" id="mobileCartBadge">0</span>
+      <span class="mobile-cart-total" id="mobileCartTotal">Rp 0</span>
     </button>
 
-    <!-- CASH MODAL -->
-    <div
-      class="modal"
-      id="cashModal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="cashModalTitle"
-    >
+    <!-- ============ CASH MODAL ============ -->
+    <div class="modal" id="cashModal" role="dialog" aria-modal="true" aria-labelledby="cashModalTitle">
       <div class="modal-box">
         <div class="modal-header">
           <h2 id="cashModalTitle">Pembayaran Cash</h2>
-          <button
-            type="button"
-            class="close-btn"
-            onclick="tutupCashModal()"
-            aria-label="Tutup"
-          >
-            ×
-          </button>
+          <button type="button" class="icon-btn" data-close="cash" aria-label="Tutup"><svg class="i"><use href="#i-x" /></svg></button>
         </div>
 
-        <div class="cash-total-box">
-          <span>Total yang harus dibayar</span>
-          <strong id="cashTotal">Rp 0</strong>
-        </div>
+        <div class="cash-total-box"><span>Total yang harus dibayar</span><strong id="cashTotal">Rp 0</strong></div>
 
-        <input
-          type="number"
-          inputmode="numeric"
-          id="uangDiterima"
-          class="cash-input"
-          placeholder="Masukkan uang"
-          min="0"
-          step="500"
-          autocomplete="off"
-          aria-label="Uang diterima"
-        />
-
+        <label class="cash-input-wrap">
+          <span class="cash-prefix">Rp</span>
+          <input type="text" inputmode="numeric" id="uangDiterima" class="cash-input" placeholder="0" autocomplete="off" aria-label="Uang diterima" />
+        </label>
         <div class="cash-error" id="cashInputError" role="alert"></div>
 
-        <div class="quick-cash">
-          <button type="button" class="quick-btn" onclick="quickCash('pas')">
-            Uang Pas
-          </button>
-          <button type="button" class="quick-btn" onclick="quickCash(20000)">
-            20K
-          </button>
-          <button type="button" class="quick-btn" onclick="quickCash(50000)">
-            50K
-          </button>
-          <button type="button" class="quick-btn" onclick="quickCash(100000)">
-            100K
-          </button>
-          <button type="button" class="quick-btn" onclick="quickCash(200000)">
-            200K
-          </button>
-          <button type="button" class="quick-btn" onclick="quickCash(500000)">
-            500K
-          </button>
-        </div>
+        <div class="quick-cash" id="quickCash"></div>
 
-        <div class="change-box" id="changeBox">
-          <span>Kembalian</span>
-          <strong id="kembalian">Rp 0</strong>
-        </div>
+        <div class="change-box" id="changeBox"><span>Kembalian</span><strong id="kembalian">Rp 0</strong></div>
 
-        <button
-          type="button"
-          class="confirm-cash-btn"
-          id="btnKonfirmasiCash"
-          onclick="konfirmasiCash()"
-        >
-          ✓ Konfirmasi Pembayaran
-        </button>
+        <button type="button" class="btn btn-primary btn-block" id="btnKonfirmasiCash"><svg class="i"><use href="#i-check" /></svg>Konfirmasi Pembayaran</button>
       </div>
     </div>
 
-    <!-- QRIS MODAL -->
-    <div
-      class="modal"
-      id="qrisModal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="qrisModalTitle"
-    >
+    <!-- ============ QRIS MODAL ============ -->
+    <div class="modal" id="qrisModal" role="dialog" aria-modal="true" aria-labelledby="qrisModalTitle">
       <div class="modal-box qris-box">
         <div class="modal-header">
           <h2 id="qrisModalTitle">Pembayaran QRIS</h2>
-          <button
-            type="button"
-            class="close-btn"
-            onclick="tutupQrisModal()"
-            aria-label="Tutup"
-          >
-            ×
-          </button>
+          <button type="button" class="icon-btn" data-close="qris" aria-label="Tutup"><svg class="i"><use href="#i-x" /></svg></button>
         </div>
 
         <div class="qris-image-frame">
-          <img
-            src="QR.png"
-            alt="QRIS FYNCOFFEE"
-            id="qrisImage"
-            onerror="
-              this.style.display = 'none';
-              this.nextElementSibling.style.display = 'flex';
-            "
-          />
-          <div class="qris-fallback">
-            <div class="qr-icon">▣</div>
-            <div>QR Code belum tersedia</div>
-            <div style="font-size: 10px; color: #8a7e6e">
-              Letakkan <b>QR.png</b> di folder yang sama
-            </div>
-          </div>
+          <img src="QR.png" alt="QRIS FYNCOFFEE" id="qrisImage" />
+          <div class="qris-fallback"><svg class="i"><use href="#i-qr" /></svg><div>QR Code belum tersedia</div><small>Letakkan <b>QR.png</b> di folder yang sama</small></div>
         </div>
 
         <div class="qris-amount" id="qrisTotal">Rp 0</div>
+        <div class="qris-hint">Minta pelanggan memindai kode QR, lalu tekan “Tandai Lunas” setelah pembayaran berhasil.</div>
 
-        <div class="qris-hint">
-          Minta pelanggan memindai kode QR di atas, lalu tekan "Tandai Lunas"
-          setelah pembayaran berhasil.
-        </div>
-
-        <div class="qris-actions">
-          <button type="button" class="btn-ghost" onclick="tutupQrisModal()">
-            Batal
-          </button>
-          <button type="button" class="btn-dark" onclick="konfirmasiQRIS()">
-            ✓ Tandai Lunas
-          </button>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close="qris">Batal</button>
+          <button type="button" class="btn btn-primary" id="btnKonfirmasiQris"><svg class="i"><use href="#i-check" /></svg>Tandai Lunas</button>
         </div>
       </div>
     </div>
 
-    <!-- RECEIPT MODAL -->
-    <div
-      class="modal"
-      id="receiptModal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="receiptModalTitle"
-    >
+    <!-- ============ RECEIPT MODAL (setelah bayar) ============ -->
+    <div class="modal" id="receiptModal" role="dialog" aria-modal="true" aria-labelledby="receiptModalTitle">
       <div class="modal-box receipt-modal-box">
         <div class="modal-header">
           <h2 id="receiptModalTitle">Transaksi Berhasil</h2>
-          <button
-            type="button"
-            class="close-btn"
-            onclick="tutupStruk()"
-            aria-label="Tutup"
-          >
-            ×
-          </button>
+          <button type="button" class="icon-btn" data-close="receipt" aria-label="Tutup"><svg class="i"><use href="#i-x" /></svg></button>
         </div>
 
         <div class="success-badge" role="status">
-          <span class="check" aria-hidden="true">✓</span>
+          <span class="check"><svg class="i"><use href="#i-check" /></svg></span>
           <span id="receiptSuccessText">Pembayaran diterima</span>
         </div>
 
-        <div id="receiptPreview"></div>
+        <div class="receipt-scroll"><div id="receiptPreview"></div></div>
 
         <div class="receipt-actions">
-          <button
-            type="button"
-            class="btn-ghost"
-            onclick="cetakStrukTerakhir()"
-            title="Cetak struk"
-          >
-            🖨 Cetak
-          </button>
-          <button
-            type="button"
-            class="btn-ghost btn-download-pdf"
-            id="btnDownloadPdf"
-            onclick="downloadStrukPDF()"
-            title="Download struk sebagai PDF"
-          >
-            ⬇️ PDF
-          </button>
-          <button
-            type="button"
-            class="btn-new-trx"
-            onclick="mulaiTransaksiBaru()"
-          >
-            ➕ Transaksi Baru
-          </button>
-        </div>
-
-        <div class="receipt-actions secondary-row">
-          <button type="button" class="btn-ghost" onclick="tutupStruk()">
-            Selesai
-          </button>
+          <button type="button" class="btn btn-ghost" id="btnCetak"><svg class="i"><use href="#i-printer" /></svg>Cetak</button>
+          <button type="button" class="btn btn-ghost" id="btnDownloadPdf"><svg class="i"><use href="#i-download" /></svg>PDF</button>
+          <button type="button" class="btn btn-primary" id="btnTrxBaru"><svg class="i"><use href="#i-plus" /></svg>Transaksi Baru</button>
         </div>
       </div>
     </div>
 
-    <!-- RECEIPT CONTAINER -->
-    <div
-      id="receiptContainer"
-      class="receipt-container"
-      aria-hidden="true"
-    ></div>
+    <!-- ============ DETAIL TRANSAKSI (dari riwayat) ============ -->
+    <div class="drawer" id="detailDrawer" role="dialog" aria-modal="true" aria-labelledby="detailTitle" aria-hidden="true">
+      <div class="drawer-box">
+        <div class="modal-header">
+          <div>
+            <h2 id="detailTitle">Detail Transaksi</h2>
+            <div class="drawer-sub" id="detailSub"></div>
+          </div>
+          <button type="button" class="icon-btn" data-close="detail" aria-label="Tutup"><svg class="i"><use href="#i-x" /></svg></button>
+        </div>
 
-    <!-- TOAST -->
+        <div class="detail-meta" id="detailMeta"></div>
+        <div class="receipt-scroll"><div id="detailReceipt"></div></div>
+
+        <div class="receipt-actions">
+          <button type="button" class="btn btn-primary" id="dBtnCetak"><svg class="i"><use href="#i-printer" /></svg>Cetak</button>
+          <button type="button" class="btn btn-ghost" id="dBtnPdf"><svg class="i"><use href="#i-download" /></svg>PDF</button>
+          <button type="button" class="btn btn-ghost" id="dBtnBuka"><svg class="i"><use href="#i-external" /></svg>Halaman struk</button>
+          <button type="button" class="btn btn-danger" id="dBtnBatal"><svg class="i"><use href="#i-ban" /></svg>Batalkan</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="receiptContainer" class="receipt-container" aria-hidden="true"></div>
     <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-    <!-- LOADING OVERLAY -->
     <div id="loadingOverlay" aria-hidden="true">
       <div class="loading-spinner"></div>
-      <div class="loading-text" id="loadingText">Memproses transaksi...</div>
+      <div class="loading-text" id="loadingText">Memproses transaksi…</div>
     </div>
 
     <noscript>
-      <div
-        style="
-          position: fixed;
-          inset: 0;
-          z-index: 99999;
-          background: #0a0807;
-          color: #f6eddf;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 30px;
-          text-align: center;
-          font-family: Inter, system-ui, sans-serif;
-        "
-      >
-        <div>
-          <img
-            src="Logo no background.png"
-            alt="Logo FYNCOFFEE"
-            style="
-              width: 90px;
-              height: 90px;
-              object-fit: contain;
-              margin-bottom: 20px;
-            "
-          />
-          <h2 style="font-size: 22px; margin-bottom: 10px">
-            JavaScript Diperlukan
-          </h2>
-          <p style="color: #a3a3a3; font-size: 14px; line-height: 1.6">
-            Aplikasi FYNCOFFEE POS membutuhkan JavaScript.<br />Silakan aktifkan
-            JavaScript di browser Anda.
-          </p>
-        </div>
+      <div style="position:fixed;inset:0;z-index:99999;background:#0b0908;color:#f6eddf;display:flex;align-items:center;justify-content:center;padding:30px;text-align:center;font-family:Inter,system-ui,sans-serif">
+        <div><h2 style="font-size:22px;margin-bottom:10px">JavaScript Diperlukan</h2>
+        <p style="color:#a3a3a3;font-size:14px;line-height:1.6">Aplikasi FYNCOFFEE POS membutuhkan JavaScript.<br />Silakan aktifkan JavaScript di browser Anda.</p></div>
       </div>
     </noscript>
 
-    <!-- ============ PDF EXPORT LIBRARIES ============ -->
-    <!--
-      jsPDF + html2canvas dipakai untuk membuat file PDF langsung di browser.
-      Tidak membutuhkan server tambahan dan tetap bekerja di Google Apps Script.
-    -->
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-      crossorigin="anonymous"
-    ></script>
-
-    <!-- ============ INLINE HELPER SCRIPT ============ -->
-    <script>
-      /* =====================================================
-         MOBILE CART
-         ===================================================== */
-      function toggleMobileCart() {
-        const cart = document.getElementById("cartSection");
-        const backdrop = document.getElementById("mobileCartBackdrop");
-        if (!cart) return;
-
-        const opened = cart.classList.toggle("mobile-open");
-        if (backdrop) {
-          backdrop.classList.toggle("active", opened);
-          backdrop.setAttribute("aria-hidden", String(!opened));
-        }
-
-        const isMobile = window.innerWidth <= 900;
-        document.body.style.overflow = opened && isMobile ? "hidden" : "";
-
-        if (opened && isMobile) {
-          const closeBtn = cart.querySelector(".cart-close");
-          if (closeBtn) closeBtn.focus();
-        }
-      }
-
-      function closeMobileCart() {
-        const cart = document.getElementById("cartSection");
-        const backdrop = document.getElementById("mobileCartBackdrop");
-        if (cart) cart.classList.remove("mobile-open");
-        if (backdrop) {
-          backdrop.classList.remove("active");
-          backdrop.setAttribute("aria-hidden", "true");
-        }
-        document.body.style.overflow = "";
-      }
-
-      /* =====================================================
-         AUTO CLOSE CART AFTER PRODUCT CLICK (mobile)
-         ===================================================== */
-      document.addEventListener("click", function (event) {
-        if (window.innerWidth > 900) return;
-        const product = event.target.closest(".product-card");
-        if (product && !product.classList.contains("out-of-stock")) {
-          setTimeout(closeMobileCart, 150);
-        }
-      });
-
-      /* =====================================================
-         ESC KEY
-         ===================================================== */
-      document.addEventListener("keydown", function (event) {
-        if (event.key !== "Escape") return;
-        closeMobileCart();
-        if (typeof tutupCashModal === "function") tutupCashModal();
-        if (typeof tutupQrisModal === "function") tutupQrisModal();
-        if (typeof tutupStruk === "function") tutupStruk();
-      });
-
-      /* =====================================================
-         RESIZE
-         ===================================================== */
-      window.addEventListener("resize", function () {
-        if (window.innerWidth > 900) closeMobileCart();
-      });
-
-      /* =====================================================
-         BODY SCROLL LOCK SAAT MODAL TERBUKA
-         ===================================================== */
-      (function setupModalScrollLock() {
-        if (!("MutationObserver" in window)) return;
-        const modals = ["cashModal", "qrisModal", "receiptModal"]
-          .map((id) => document.getElementById(id))
-          .filter(Boolean);
-        if (!modals.length) return;
-
-        function sync() {
-          const anyActive = modals.some((m) => m.classList.contains("active"));
-          document.body.classList.toggle("modal-open", anyActive);
-        }
-
-        const observer = new MutationObserver(sync);
-        modals.forEach((m) => {
-          observer.observe(m, { attributes: true, attributeFilter: ["class"] });
-        });
-        sync();
-      })();
-
-      /* =====================================================
-         ORDER TYPE TOGGLE (self-contained)
-         ===================================================== */
-      function setOrderType(type) {
-        const group = document.getElementById("orderTypeGroup");
-        if (!group) return;
-
-        group.querySelectorAll(".order-type-btn").forEach((btn) => {
-          btn.classList.toggle("active", btn.dataset.orderType === type);
-        });
-
-        try {
-          localStorage.setItem("fyncoffee_order_type", type);
-        } catch (e) {}
-      }
-
-      (function initOrderType() {
-        const group = document.getElementById("orderTypeGroup");
-        if (!group) return;
-
-        group.addEventListener("click", (e) => {
-          const btn = e.target.closest(".order-type-btn");
-          if (!btn) return;
-          setOrderType(btn.dataset.orderType);
-        });
-
-        try {
-          const saved =
-            localStorage.getItem("fyncoffee_order_type") || "dine-in";
-          setOrderType(saved);
-        } catch (e) {}
-      })();
-
-      /* =====================================================
-         CUSTOMER NAME & ORDER NOTE (auto-save)
-         ===================================================== */
-      (function initCustomerNote() {
-        const nameInput = document.getElementById("customerNameInput");
-        const noteInput = document.getElementById("orderNoteInput");
-
-        if (nameInput) {
-          try {
-            nameInput.value =
-              localStorage.getItem("fyncoffee_customer_name") || "";
-          } catch (e) {}
-
-          nameInput.addEventListener("input", () => {
-            try {
-              localStorage.setItem("fyncoffee_customer_name", nameInput.value);
-            } catch (e) {}
-          });
-        }
-
-        if (noteInput) {
-          try {
-            noteInput.value =
-              localStorage.getItem("fyncoffee_order_note") || "";
-          } catch (e) {}
-
-          noteInput.addEventListener("input", () => {
-            try {
-              localStorage.setItem("fyncoffee_order_note", noteInput.value);
-            } catch (e) {}
-          });
-        }
-      })();
-
-      /* =====================================================
-         SOUND TOGGLE
-         ===================================================== */
-      function toggleSound() {
-        const btn = document.getElementById("btnSoundToggle");
-        if (!btn) return;
-
-        const isActive = btn.classList.toggle("active");
-        btn.textContent = isActive ? "🔊" : "🔇";
-
-        try {
-          localStorage.setItem("fyncoffee_sound", isActive ? "1" : "0");
-        } catch (e) {}
-      }
-
-      (function initSound() {
-        const btn = document.getElementById("btnSoundToggle");
-        if (!btn) return;
-
-        try {
-          const saved = localStorage.getItem("fyncoffee_sound");
-          const isActive = saved !== "0";
-          btn.classList.toggle("active", isActive);
-          btn.textContent = isActive ? "🔊" : "🔇";
-        } catch (e) {
-          btn.classList.add("active");
-        }
-      })();
-
-      /* =====================================================
-         FULLSCREEN
-         ===================================================== */
-      async function togglePOSFullscreen() {
-        try {
-          if (document.fullscreenElement) {
-            await document.exitFullscreen();
-          } else if (document.documentElement.requestFullscreen) {
-            await document.documentElement.requestFullscreen();
-          }
-        } catch (err) {
-          console.log("Fullscreen tidak tersedia:", err);
-        }
-      }
-
-      /* =====================================================
-         DOWNLOAD STRUK PDF
-         ===================================================== */
-
-      /**
-       * Mengubah teks menjadi nama file yang aman.
-       */
-      function sanitizeFileName(value) {
-        return (
-          String(value || "FYNCOFFEE")
-            .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
-            .replace(/\s+/g, "-")
-            .replace(/-+/g, "-")
-            .replace(/^-|-$/g, "")
-            .slice(0, 80) || "FYNCOFFEE"
-        );
-      }
-
-      /**
-       * Membuat nama file PDF berdasarkan data struk.
-       */
-      function getReceiptPdfFileName() {
-        const paper = document.querySelector("#receiptPreview .r-paper");
-        const text = paper ? paper.innerText || "" : "";
-
-        /* Cari nomor transaksi jika ada */
-        const trxMatch = text.match(
-          /(?:No\.?\s*(?:Transaksi|Trx)|Transaksi)\s*[:#-]?\s*([A-Za-z0-9._/-]+)/i,
-        );
-
-        const now = new Date();
-        const stamp =
-          now.getFullYear() +
-          String(now.getMonth() + 1).padStart(2, "0") +
-          String(now.getDate()).padStart(2, "0") +
-          "-" +
-          String(now.getHours()).padStart(2, "0") +
-          String(now.getMinutes()).padStart(2, "0");
-
-        return (
-          "FYNCOFFEE-" +
-          sanitizeFileName(trxMatch ? trxMatch[1] : "STRUK") +
-          "-" +
-          stamp +
-          ".pdf"
-        );
-      }
-
-      /**
-       * Download preview struk menjadi PDF ukuran thermal 58 mm.
-       *
-       * Catatan:
-       * - PDF dibuat dari #receiptPreview, bukan screenshot seluruh halaman.
-       * - Ukuran tinggi PDF mengikuti tinggi struk sehingga minim ruang kosong.
-       * - Jika library PDF gagal dimuat, pengguna diberi fallback ke dialog cetak.
-       */
-      async function downloadStrukPDF() {
-        const button = document.getElementById("btnDownloadPdf");
-        const paper = document.querySelector("#receiptPreview .r-paper");
-
-        if (!paper) {
-          if (typeof toast === "function") {
-            toast("Preview struk belum tersedia.", "error");
-          } else {
-            alert("Preview struk belum tersedia.");
-          }
-          return;
-        }
-
-        if (!window.html2canvas || !window.jspdf || !window.jspdf.jsPDF) {
-          if (typeof toast === "function") {
-            toast(
-              "Komponen PDF belum siap. Silakan tunggu sebentar lalu coba lagi.",
-              "error",
-            );
-          } else {
-            alert("Komponen PDF belum siap. Silakan coba lagi.");
-          }
-          return;
-        }
-
-        const originalText = button ? button.innerHTML : "";
-        if (button) {
-          button.disabled = true;
-          button.classList.add("loading");
-          button.innerHTML = "⏳ Membuat...";
-        }
-
-        try {
-          /*
-           * Clone agar proses capture tidak mengubah tampilan struk asli.
-           * Clone dipasang di luar viewport dengan ukuran 58mm yang stabil.
-           */
-          const clone = paper.cloneNode(true);
-
-          const exportHost = document.createElement("div");
-          exportHost.id = "__fyncoffee_pdf_export_host";
-          exportHost.style.cssText = [
-            "position:fixed",
-            "left:-100000px",
-            "top:0",
-            "width:58mm",
-            "background:#fff",
-            "padding:0",
-            "margin:0",
-            "z-index:-1",
-            "pointer-events:none",
-          ].join(";");
-
-          clone.style.cssText = [
-            "width:58mm",
-            "max-width:none",
-            "min-height:0",
-            "height:auto",
-            "margin:0",
-            "border:0",
-            "border-radius:0",
-            "box-shadow:none",
-            "padding:3mm",
-            "background:#fff",
-            "color:#000",
-            "font-family:'Courier New',ui-monospace,monospace",
-            "font-size:11px",
-            "line-height:1.45",
-          ].join(";");
-
-          /* Hilangkan scrollbar / batas preview dari modal */
-          clone.style.maxHeight = "none";
-          clone.style.overflow = "visible";
-
-          exportHost.appendChild(clone);
-          document.body.appendChild(exportHost);
-
-          /*
-           * Tunggu font/layout selesai sebelum screenshot.
-           */
-          if (document.fonts && document.fonts.ready) {
-            try {
-              await document.fonts.ready;
-            } catch (e) {}
-          }
-
-          await new Promise((resolve) => requestAnimationFrame(resolve));
-
-          const canvas = await window.html2canvas(clone, {
-            scale: Math.max(2, Math.min(4, window.devicePixelRatio || 2)),
-            backgroundColor: "#ffffff",
-            useCORS: true,
-            allowTaint: false,
-            logging: false,
-            imageTimeout: 10000,
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: clone.scrollWidth || 220,
-            windowHeight: clone.scrollHeight || 600,
-          });
-
-          /*
-           * Lebar thermal = 58mm.
-           * Tinggi mengikuti rasio canvas agar tidak ada halaman kosong besar.
-           */
-          const pdfWidthMm = 58;
-          const pdfHeightMm = Math.max(
-            20,
-            (canvas.height / canvas.width) * pdfWidthMm,
-          );
-
-          const { jsPDF } = window.jspdf;
-
-          const pdf = new jsPDF({
-            orientation: "portrait",
-            unit: "mm",
-            format: [pdfWidthMm, pdfHeightMm],
-            compress: true,
-            putOnlyUsedFonts: true,
-          });
-
-          const imageData = canvas.toDataURL("image/png", 1.0);
-
-          pdf.addImage(
-            imageData,
-            "PNG",
-            0,
-            0,
-            pdfWidthMm,
-            pdfHeightMm,
-            undefined,
-            "FAST",
-          );
-
-          pdf.save(getReceiptPdfFileName());
-
-          if (typeof toast === "function") {
-            toast("Struk PDF berhasil di-download ✓", "success");
-          }
-        } catch (error) {
-          console.error("[FYNCOFFEE] Gagal membuat PDF:", error);
-
-          if (typeof toast === "function") {
-            toast(
-              "Gagal membuat PDF. Silakan coba lagi atau gunakan Cetak.",
-              "error",
-            );
-          } else {
-            alert("Gagal membuat PDF. Silakan coba lagi.");
-          }
-        } finally {
-          const host = document.getElementById("__fyncoffee_pdf_export_host");
-          if (host) host.remove();
-
-          if (button) {
-            button.disabled = false;
-            button.classList.remove("loading");
-            button.innerHTML = originalText || "⬇️ PDF";
-          }
-        }
-      }
-
-      /*
-       * Keyboard shortcut:
-       * Ctrl + Shift + P = Download PDF ketika struk sedang terbuka.
-       */
-      document.addEventListener("keydown", function (event) {
-        if (
-          event.ctrlKey &&
-          event.shiftKey &&
-          String(event.key).toLowerCase() === "p"
-        ) {
-          const receiptModal = document.getElementById("receiptModal");
-          if (receiptModal && receiptModal.classList.contains("active")) {
-            event.preventDefault();
-            downloadStrukPDF();
-          }
-        }
-      });
-
-      /* =====================================================
-         REFRESH PRODUK (dengan animasi spin)
-         ===================================================== */
-      function refreshProduk() {
-        const btn = document.getElementById("btnRefresh");
-        const icon = document.getElementById("refreshIcon");
-
-        if (icon) {
-          icon.classList.remove("spinning");
-          void icon.offsetWidth;
-          icon.classList.add("spinning");
-        }
-
-        if (btn) btn.disabled = true;
-
-        if (typeof ambilProduk === "function") {
-          Promise.resolve(ambilProduk()).finally(() => {
-            if (btn) btn.disabled = false;
-          });
-        } else {
-          if (btn) btn.disabled = false;
-        }
-      }
-
-      /* =====================================================
-         TRANSAKSI BARU (dari receipt modal)
-         ===================================================== */
-      function mulaiTransaksiBaru() {
-        /* Tutup modal struk */
-        if (typeof tutupStruk === "function") tutupStruk();
-
-        /* Reset form customer & note */
-        const nameInput = document.getElementById("customerNameInput");
-        const noteInput = document.getElementById("orderNoteInput");
-        if (nameInput) nameInput.value = "";
-        if (noteInput) noteInput.value = "";
-
-        try {
-          localStorage.removeItem("fyncoffee_customer_name");
-          localStorage.removeItem("fyncoffee_order_note");
-        } catch (e) {}
-
-        /* Fokus ke search produk */
-        setTimeout(() => {
-          const search = document.getElementById("searchProduk");
-          if (search) {
-            search.focus();
-            search.select();
-          }
-        }, 200);
-
-        /* Toast konfirmasi */
-        if (typeof toast === "function") {
-          toast("Siap untuk transaksi baru ✨", "success");
-        }
-      }
-
-      /* =====================================================
-         FALLBACK — JIKA Script.js GAGAL DIMUAT
-         ===================================================== */
-      window.addEventListener("load", function () {
-        setTimeout(function () {
-          const hasAmbilProduk = typeof window.ambilProduk === "function";
-          if (!hasAmbilProduk) {
-            console.warn("[FYNCOFFEE] Script.js tidak terdeteksi.");
-            const produk = document.getElementById("produk");
-            if (produk) {
-              produk.innerHTML = `
-                <div class="empty-state">
-                  <div class="empty-icon">⚠️</div>
-                  <h3>Gagal Memuat Aplikasi</h3>
-                  <p>File <b>Script.js</b> tidak ditemukan atau gagal dimuat.<br/>
-                  Pastikan file <b>Script.js</b> berada di folder yang sama.</p>
-                </div>
-              `;
-            }
-          }
-        }, 800);
-      });
-
-      /* =====================================================
-         LOG
-         ===================================================== */
-      console.log(
-        "%c FYNCOFFEE POS ",
-        "background:#0a0807;color:#d6b26a;padding:8px 12px;border-radius:6px;font-weight:900;font-size:13px;border:1px solid #d6b26a;",
-      );
-      console.log(
-        "%c Index V6 — LUXE EDITION ",
-        "background:#a47c36;color:#0a0807;padding:3px 8px;border-radius:4px;font-size:11px;",
-      );
-    </script>
-
-    <!-- ============ MAIN SCRIPT ============ -->
+    <!-- Library PDF (dimuat saat dibutuhkan agar aplikasi cepat terbuka) -->
+    <script src="ui.js"></script>
     <script src="script.js" defer></script>
+    <script src="history.js" defer></script>
   </body>
 </html>

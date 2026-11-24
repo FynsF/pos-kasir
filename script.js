@@ -1,6 +1,7 @@
 // ============================================================
 // FYNCOFFEE POS KASIR
-// SCRIPT.JS V9 — SINKRON DENGAN BACKEND APPS SCRIPT V4
+// SCRIPT.JS V10 — SINKRON DENGAN BACKEND APPS SCRIPT V4
+// (V10: tema terang/gelap, riwayat transaksi, filter tanggal — lihat ui.js & history.js)
 // FRONTEND <-> GOOGLE APPS SCRIPT <-> GOOGLE SPREADSHEET (EXCEL)
 //
 // PERUBAHAN DARI V8:
@@ -56,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSearch();
   setupCashInput();
   setupNetworkStatus();
-  setupModalEvents();
+  setupProductEvents();
   setupKeyboard();
 
   renderCart();
@@ -263,14 +264,14 @@ function renderProdukError(pesan) {
   container.removeAttribute("aria-busy");
   container.innerHTML = `
     <div class="empty-state">
-      <div class="empty-icon">⚠️</div>
+      <div class="empty-icon"><svg class="i"><use href="#i-alert"/></svg></div>
       <h3>Tidak dapat terhubung ke server</h3>
       <p>${escapeHTML(pesan || "Gagal memuat produk")}</p>
       <p id="diagnosaHasil" style="margin-top:10px;font-size:13px;line-height:1.6">
         Memeriksa penyebab…
       </p>
-      <button type="button" class="refresh-btn" style="margin:14px auto 0"
-        onclick="refreshProduk()">↻ Coba Lagi</button>
+      <button type="button" class="btn btn-ghost" style="margin:16px auto 0"
+        onclick="ambilProduk()"><svg class="i"><use href="#i-refresh"/></svg>Coba Lagi</button>
     </div>
   `;
 
@@ -438,7 +439,7 @@ function renderProduk() {
   if (!data.length) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">☕</div>
+        <div class="empty-icon"><svg class="i"><use href="#i-coffee"/></svg></div>
         <h3>Produk tidak ditemukan</h3>
         <p>Coba gunakan kata kunci atau kategori lain.</p>
       </div>
@@ -449,6 +450,11 @@ function renderProduk() {
   container.innerHTML = data.map(renderProductCard).join("");
 }
 
+function qtyDiKeranjang(id) {
+  const it = keranjang.find((c) => String(c.id_produk) === String(id));
+  return it ? Number(it.qty) || 0 : 0;
+}
+
 function renderProductCard(item) {
   const stok = Number(item.stok) || 0;
   const stokMinimum = Number(item.stokMinimum) || 0;
@@ -456,35 +462,90 @@ function renderProductCard(item) {
   const habis = stok <= 0;
   const stokRendah = !habis && stok <= stokMinimum;
 
-  let stockText = "";
+  let stockText = `Stok ${stok}`;
   let stockClass = "";
-
   if (habis) {
     stockText = "Stok habis";
     stockClass = "empty";
   } else if (stokRendah) {
     stockText = `Stok ${stok} • Menipis`;
     stockClass = "low";
-  } else {
-    stockText = `Stok ${stok}`;
   }
+
+  const qty = qtyDiKeranjang(item.id);
 
   return `
     <div
-      class="product-card ${habis ? "out-of-stock" : ""}"
-      ${habis ? "" : `onclick="tambahProduk('${escapeHTML(escapeAttr(item.id))}')"`}
-      tabindex="0"
+      class="product-card ${habis ? "out-of-stock" : ""} ${qty ? "in-cart" : ""}"
+      data-id="${escapeHTML(item.id)}"
+      tabindex="${habis ? "-1" : "0"}"
       role="button"
-      aria-label="${escapeHTML(item.nama)}"
+      aria-disabled="${habis}"
+      aria-label="${escapeHTML(item.nama)}, ${formatRupiah(item.harga)}"
     >
+      ${qty ? `<span class="product-qty">${qty}</span>` : ""}
       <div class="product-info">
         <div class="product-category">${escapeHTML(item.kategori)}</div>
         <h3 class="product-name">${escapeHTML(item.nama)}</h3>
-        <div class="product-price">${formatRupiah(item.harga)}</div>
-        <div class="stock-label ${stockClass}">${escapeHTML(stockText)}</div>
+      </div>
+      <div class="product-foot">
+        <div>
+          <div class="product-price">${formatRupiah(item.harga)}</div>
+          <div class="stock-label ${stockClass}">${escapeHTML(stockText)}</div>
+        </div>
+        ${habis ? "" : `<span class="product-add" aria-hidden="true"><svg class="i"><use href="#i-plus"/></svg></span>`}
       </div>
     </div>
   `;
+}
+
+// Perbarui badge jumlah di kartu produk tanpa merender ulang seluruh grid
+function perbaruiBadgeProduk() {
+  const container = document.getElementById("produk");
+  if (!container) return;
+  container.querySelectorAll(".product-card[data-id]").forEach((card) => {
+    const qty = qtyDiKeranjang(card.dataset.id);
+    let badge = card.querySelector(".product-qty");
+    card.classList.toggle("in-cart", qty > 0);
+    if (qty > 0) {
+      if (!badge) {
+        badge = document.createElement("span");
+        badge.className = "product-qty";
+        card.prepend(badge);
+      }
+      if (badge.textContent !== String(qty)) {
+        badge.textContent = qty;
+        badge.style.animation = "none";
+        void badge.offsetWidth;
+        badge.style.animation = "";
+      }
+    } else if (badge) {
+      badge.remove();
+    }
+  });
+}
+
+// Delegasi klik/keyboard pada grid produk
+function setupProductEvents() {
+  const container = document.getElementById("produk");
+  if (!container) return;
+
+  container.addEventListener("click", (e) => {
+    const card = e.target.closest(".product-card");
+    if (!card || card.classList.contains("out-of-stock")) return;
+    card.classList.remove("bump");
+    void card.offsetWidth;
+    card.classList.add("bump");
+    tambahProduk(card.dataset.id);
+  });
+
+  container.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const card = e.target.closest(".product-card");
+    if (!card || card.classList.contains("out-of-stock")) return;
+    e.preventDefault();
+    tambahProduk(card.dataset.id);
+  });
 }
 
 // ============================================================
@@ -529,6 +590,7 @@ function tambahProduk(id) {
     });
   }
 
+  if (window.FynSound) FynSound.play("add");
   renderCart();
   pushToCustomerDisplay();
 }
@@ -574,6 +636,7 @@ function renderCart() {
     container.innerHTML = "";
     if (empty) empty.style.display = "flex";
     updateCartSummary();
+    perbaruiBadgeProduk();
     pushToCustomerDisplay();
     return;
   }
@@ -583,6 +646,7 @@ function renderCart() {
   container.innerHTML = keranjang.map(renderCartItem).join("");
 
   updateCartSummary();
+  perbaruiBadgeProduk();
   pushToCustomerDisplay();
 }
 
@@ -602,15 +666,15 @@ function renderCartItem(item) {
           type="button"
           class="cart-item-remove"
           onclick="hapusItem('${idAman}')"
-          aria-label="Hapus item"
-        >×</button>
+          aria-label="Hapus ${escapeHTML(item.nama_produk)}"
+        ><svg class="i"><use href="#i-x"/></svg></button>
       </div>
 
       <div class="cart-item-bottom">
         <div class="qty-control">
-          <button type="button" class="qty-btn" onclick="ubahQty('${idAman}', -1)" aria-label="Kurangi">−</button>
+          <button type="button" class="qty-btn" onclick="ubahQty('${idAman}', -1)" aria-label="Kurangi"><svg class="i"><use href="#i-minus"/></svg></button>
           <span class="qty-value">${Number(item.qty)}</span>
-          <button type="button" class="qty-btn" onclick="ubahQty('${idAman}', 1)" aria-label="Tambah">+</button>
+          <button type="button" class="qty-btn" onclick="ubahQty('${idAman}', 1)" aria-label="Tambah"><svg class="i"><use href="#i-plus"/></svg></button>
         </div>
 
         <div class="cart-item-subtotal">${formatRupiah(subtotal)}</div>
@@ -683,13 +747,13 @@ function updateCartSummary() {
 
   if (badge) {
     badge.textContent = totalItem;
-    badge.style.display = totalItem > 0 ? "flex" : "none";
+    badge.style.display = totalItem > 0 ? "grid" : "none";
   }
 
-  if (mobileBadge) {
-    mobileBadge.textContent = totalItem;
-    mobileBadge.style.display = totalItem > 0 ? "flex" : "none";
-  }
+  if (mobileBadge) mobileBadge.textContent = totalItem;
+
+  const mobileTotal = document.getElementById("mobileCartTotal");
+  if (mobileTotal) mobileTotal.textContent = formatRupiah(total);
 }
 
 // ============================================================
@@ -704,7 +768,7 @@ function setupSearch() {
   input.addEventListener("input", (event) => {
     searchQuery = event.target.value;
     renderProduk();
-    if (clear) clear.style.display = searchQuery ? "flex" : "none";
+    if (clear) clear.style.display = searchQuery ? "grid" : "none";
   });
 
   if (clear) {
@@ -766,7 +830,7 @@ function bukaCashModal() {
 
   if (input) {
     input.value = "";
-    input.classList.remove("invalid");
+    if (input.parentElement) input.parentElement.classList.remove("invalid");
   }
 
   if (kembalian) kembalian.textContent = formatRupiah(0);
@@ -775,8 +839,9 @@ function bukaCashModal() {
   if (error) {
     error.textContent = "";
     error.classList.remove("visible");
-    error.style.display = "none";
   }
+
+  renderQuickCash(total);
 
   if (modal) {
     modal.classList.add("active");
@@ -784,6 +849,36 @@ function bukaCashModal() {
       if (input) input.focus();
     }, 100);
   }
+}
+
+// Saran nominal pintar: pecahan uang yang paling mungkin dibayarkan pelanggan
+function saranNominalCash(total) {
+  const hasil = new Set();
+  [1000, 5000, 10000, 20000, 50000, 100000].forEach((p) => {
+    const bulat = Math.ceil(total / p) * p;
+    if (bulat > total) hasil.add(bulat);
+  });
+  [20000, 50000, 100000, 200000].forEach((n) => {
+    if (n > total) hasil.add(n);
+  });
+  return [...hasil].sort((a, b) => a - b).slice(0, 5);
+}
+
+function renderQuickCash(total) {
+  const box = document.getElementById("quickCash");
+  if (!box) return;
+
+  const saran = saranNominalCash(total);
+  box.innerHTML =
+    `<button type="button" class="quick-btn pas" data-cash="pas">Uang Pas · ${angkaID(total)}</button>` +
+    saran
+      .map((n) => `<button type="button" class="quick-btn" data-cash="${n}">${angkaID(n)}</button>`)
+      .join("");
+
+  box.onclick = (e) => {
+    const b = e.target.closest(".quick-btn");
+    if (b) quickCash(b.dataset.cash === "pas" ? "pas" : Number(b.dataset.cash));
+  };
 }
 
 function tutupCashModal() {
@@ -798,7 +893,12 @@ function setupCashInput() {
   const input = document.getElementById("uangDiterima");
   if (!input) return;
 
-  input.addEventListener("input", hitungKembalian);
+  input.addEventListener("input", () => {
+    // format ribuan otomatis: 50000 -> 50.000
+    const angka = parseMoneyInput(input.value);
+    input.value = angka ? angkaID(angka) : "";
+    hitungKembalian();
+  });
 
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -822,27 +922,22 @@ function hitungKembalian() {
 
   display.textContent = formatRupiah(kembali > 0 ? kembali : 0);
 
-  if (changeBox) changeBox.classList.toggle("negative", kembali < 0);
+  if (changeBox) changeBox.classList.toggle("negative", uang > 0 && kembali < 0);
+
+  const kurang = uang > 0 && uang < total;
+  if (input.parentElement) input.parentElement.classList.toggle("invalid", kurang);
 
   if (error) {
-    if (uang > 0 && uang < total) {
-      error.textContent = `Uang kurang ${formatRupiah(total - uang)}`;
-      error.classList.add("visible");
-      error.style.display = "block";
-      input.classList.add("invalid");
-    } else {
-      error.textContent = "";
-      error.classList.remove("visible");
-      error.style.display = "none";
-      input.classList.remove("invalid");
-    }
+    error.textContent = kurang ? `Uang kurang ${formatRupiah(total - uang)}` : "";
+    error.classList.toggle("visible", kurang);
   }
 }
 
 function setUangCash(value) {
   const input = document.getElementById("uangDiterima");
   if (!input) return;
-  input.value = Number(value) || 0;
+  const angka = Number(value) || 0;
+  input.value = angka ? angkaID(angka) : "";
   hitungKembalian();
 }
 
@@ -1026,12 +1121,15 @@ async function prosesPembayaran(metode, uangDiterima = 0) {
         (metodeFinal === "CASH" ? Math.max(0, uangServer - totalServer) : 0),
     );
 
+    const waktuObj = parseWaktuServer(result.waktu) || new Date();
+
     const transaksiStruk = {
       id: idTransaksiAktif,
       invoice: idTransaksiAktif,
       tanggal: result.waktu
         ? formatWaktuServer(result.waktu)
         : formatTanggalLengkap(),
+      tanggal_iso: waktuObj.toISOString(),
       kasir: result.kasir || namaKasir,
       items: itemsServer,
       total_item:
@@ -1059,6 +1157,10 @@ async function prosesPembayaran(metode, uangDiterima = 0) {
       /* ignore */
     }
 
+    // Simpan ke riwayat (lokal) agar bisa dibuka/dicetak ulang kapan saja
+    if (typeof riwayatSimpan === "function") riwayatSimpan(transaksiStruk);
+
+    if (window.FynSound) FynSound.play("success");
     tampilReceipt(transaksiStruk);
 
     keranjang = [];
@@ -1128,9 +1230,11 @@ function buatHTMLStruk(data) {
   const bayar = Number(data.uang_diterima ?? data.bayar) || 0;
   const kembali = Number(data.kembalian ?? data.kembali) || 0;
   const status = data.status || "Lunas";
+  const batal = /batal|cancel|void/i.test(String(status));
 
   return `
     <div class="r-paper">
+      <img class="r-logo" src="Logo struk.png" alt="" onerror="this.style.display='none'" />
       <div class="r-center r-store">${escapeHTML(NAMA_TOKO)}</div>
       <div class="r-center r-small">${escapeHTML(ALAMAT_TOKO)}</div>
       <div class="r-center r-small">${escapeHTML(TELP_TOKO)}</div>
@@ -1166,10 +1270,10 @@ function buatHTMLStruk(data) {
             <div class="r-row"><span>Tunai</span><span>${formatRupiah(bayar)}</span></div>
             <div class="r-row"><span>Kembali</span><span>${formatRupiah(kembali)}</span></div>
           `
-          : `<div class="r-row"><span>Metode</span><span>${escapeHTML(metode)}</span></div>`
+          : `<div class="r-row"><span>Metode</span><span>${escapeHTML(metode || "-")}</span></div>`
       }
 
-      <div class="r-row"><span>Status</span><span>${escapeHTML(status)}</span></div>
+      <div class="r-row"><span>Status</span><span><span class="r-badge ${batal ? "r-batal" : ""}">${escapeHTML(String(status).toUpperCase())}</span></span></div>
 
       ${
         data.catatan
@@ -1222,8 +1326,9 @@ function tutupStruk() {
   if (modal) modal.classList.remove("active");
 }
 
-function cetakStrukTerakhir() {
-  if (!lastTransaksi) {
+// Cetak struk apa pun (transaksi terakhir atau dari riwayat)
+function cetakStruk(data) {
+  if (!data) {
     toast("Belum ada transaksi untuk dicetak", "error");
     return;
   }
@@ -1231,47 +1336,62 @@ function cetakStrukTerakhir() {
   const container = document.getElementById("receiptContainer");
   if (!container) return;
 
-  container.innerHTML = buatHTMLStruk(lastTransaksi);
+  container.innerHTML = buatHTMLStruk(data);
 
-  setTimeout(() => {
-    window.print();
-    setTimeout(() => {
-      container.innerHTML = "";
-    }, 1500);
-  }, 200);
+  const bersihkan = () => {
+    container.innerHTML = "";
+    window.removeEventListener("afterprint", bersihkan);
+  };
+  window.addEventListener("afterprint", bersihkan);
+
+  // beri waktu logo dimuat sebelum dialog cetak terbuka
+  const gambar = [...container.querySelectorAll("img")];
+  Promise.all(
+    gambar.map((im) => (im.complete ? 0 : new Promise((r) => { im.onload = im.onerror = r; }))),
+  ).then(() => setTimeout(() => window.print(), 120));
+}
+
+function cetakStrukTerakhir() {
+  cetakStruk(lastTransaksi);
+}
+
+function namaFilePDF(data) {
+  const inv = (data && (data.invoice || data.id)) || "STRUK";
+  return "FYNCOFFEE-" + namaFileAman(inv) + ".pdf";
+}
+
+function downloadStrukPDF() {
+  if (!lastTransaksi) {
+    toast("Preview struk belum tersedia.", "error");
+    return;
+  }
+  unduhStrukPDF(
+    buatHTMLStruk(lastTransaksi),
+    namaFilePDF(lastTransaksi),
+    document.getElementById("btnDownloadPdf"),
+  );
 }
 
 // ============================================================
-// BUKA STRUK.HTML (halaman terpisah, opsional)
+// BUKA STRUK.HTML (halaman terpisah)
 // ============================================================
-function bukaStruk() {
-  const transaksi = localStorage.getItem("transaksi");
+// Tanpa argumen = struk transaksi terakhir. Dengan invoice = struk dari riwayat.
+function bukaStruk(invoice) {
+  let url = "struk.html";
 
-  if (!transaksi) {
+  if (invoice) {
+    url += "?inv=" + encodeURIComponent(invoice);
+  } else if (!localStorage.getItem("transaksi")) {
     toast("Data transaksi tidak ditemukan", "error");
     return;
   }
 
-  const win = window.open("struk.html", "_blank");
-
-  if (!win) {
-    toast("Popup diblokir browser. Izinkan popup untuk FYNCOFFEE.", "error");
-    return;
-  }
-
-  toast("Struk siap dicetak", "success");
+  const win = window.open(url, "_blank");
+  if (!win) toast("Popup diblokir browser. Izinkan popup untuk FYNCOFFEE.", "error");
 }
 
 function printReceipt() {
-  const transaksi = localStorage.getItem("transaksi");
-
-  if (!transaksi) {
-    toast("Belum ada transaksi untuk dicetak", "error");
-    return;
-  }
-
-  const win = window.open("struk.html", "_blank");
-  if (!win) toast("Popup diblokir browser", "error");
+  bukaStruk();
 }
 
 // ============================================================
@@ -1822,6 +1942,16 @@ function formatWaktuServer(text) {
   return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}` : String(text || "");
 }
 
+// "2026-11-20 14:05:09" / ISO -> Date (waktu lokal). null jika tidak valid.
+function parseWaktuServer(text) {
+  if (!text) return null;
+  const t = String(text);
+  const m = t.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})(?!.*[Zz+])/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
+  const d = new Date(t);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 function generateInvoice() {
   const now = new Date();
   const tahun = now.getFullYear();
@@ -1880,6 +2010,8 @@ function toast(message, type = "info") {
     document.body.appendChild(container);
   }
 
+  if (type === "error" && window.FynSound) FynSound.play("error");
+
   const item = document.createElement("div");
   item.className = `toast toast-${type} ${type}`;
   item.textContent = message;
@@ -1912,42 +2044,21 @@ function tampilLoading(show) {
 }
 
 // ============================================================
-// MODAL EVENTS
-// ============================================================
-function setupModalEvents() {
-  const cashModal = document.getElementById("cashModal");
-  const qrisModal = document.getElementById("qrisModal");
-  const receiptModal = document.getElementById("receiptModal");
-
-  if (cashModal) {
-    cashModal.addEventListener("click", (event) => {
-      if (event.target === cashModal) tutupCashModal();
-    });
-  }
-
-  if (qrisModal) {
-    qrisModal.addEventListener("click", (event) => {
-      if (event.target === qrisModal) tutupQrisModal();
-    });
-  }
-
-  if (receiptModal) {
-    receiptModal.addEventListener("click", (event) => {
-      if (event.target === receiptModal) tutupStruk();
-    });
-  }
-}
-
-// ============================================================
 // KEYBOARD SHORTCUT
 // ============================================================
 function setupKeyboard() {
   document.addEventListener("keydown", (event) => {
+    const modalAktif = document.querySelector(".modal.active, .drawer.active");
+
     if (event.key === "Escape") {
       tutupCashModal();
       tutupQrisModal();
       tutupStruk();
+      return;
     }
+
+    // F1-F3 hanya berlaku di halaman Kasir dan saat tidak ada dialog terbuka
+    if (document.body.dataset.view === "riwayat") return;
 
     if (event.key === "F1") {
       event.preventDefault();
@@ -1958,12 +2069,12 @@ function setupKeyboard() {
       }
     }
 
-    if (event.key === "F2") {
+    if (event.key === "F2" && !modalAktif) {
       event.preventDefault();
       bukaCashModal();
     }
 
-    if (event.key === "F3") {
+    if (event.key === "F3" && !modalAktif) {
       event.preventDefault();
       bayarQRIS();
     }
@@ -1997,8 +2108,14 @@ window.resetTransaksi = resetTransaksi;
 window.tampilReceipt = tampilReceipt;
 window.tutupStruk = tutupStruk;
 window.cetakStrukTerakhir = cetakStrukTerakhir;
+window.cetakStruk = cetakStruk;
+window.downloadStrukPDF = downloadStrukPDF;
 window.printReceipt = printReceipt;
 window.bukaStruk = bukaStruk;
+window.buatHTMLStruk = buatHTMLStruk;
+window.namaFilePDF = namaFilePDF;
+window.parseWaktuServer = parseWaktuServer;
+window.toast = toast;
 
 window.bukaCustomerDisplay = bukaCustomerDisplay;
 window.ambilDisplay = ambilDisplay;
@@ -2027,8 +2144,8 @@ window.formatRupiah = formatRupiah;
 // DEBUG
 // ============================================================
 console.log(
-  "%c FYNCOFFEE POS V9 ",
-  "background:#111827;color:white;padding:8px 12px;border-radius:6px;font-weight:bold;",
+  "%c FYNCOFFEE POS V10 ",
+  "background:#111827;color:#d6b26a;padding:8px 12px;border-radius:6px;font-weight:bold;",
 );
 console.log("Backend:", API);
 console.log("Kasir:", namaKasir);

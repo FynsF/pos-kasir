@@ -19,6 +19,45 @@
     />
 
     <title>FYNCOFFEE • Customer Display</title>
+    <script>
+      (function () {
+        var apply = function (t) { document.documentElement.setAttribute("data-theme", t); };
+        var t = null;
+        try { t = localStorage.getItem("fyncoffee_theme"); } catch (e) {}
+        if (t !== "light" && t !== "dark") t = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        apply(t);
+        window.addEventListener("storage", function (e) { if (e.key === "fyncoffee_theme" && (e.newValue === "light" || e.newValue === "dark")) apply(e.newValue); });
+      })();
+    </script>
+    <style>
+      /* TEMA TERANG — hanya menimpa variabel & beberapa permukaan */
+      html[data-theme="light"] {
+        --bg: #f6f1e9;
+        --bg-soft: #fbf8f2;
+        --text: #231a10;
+        --text-soft: rgba(35, 26, 16, 0.72);
+        --text-muted: rgba(35, 26, 16, 0.5);
+        --green: #1d8157;
+        --green-soft: rgba(29, 129, 87, 0.12);
+        --red: #c0392b;
+        --gold: #b9852f;
+        --gold-hi: #8a5f1c;
+        --border: rgba(138, 95, 28, 0.25);
+        --border-soft: rgba(138, 95, 28, 0.12);
+        --shadow-lg: 0 25px 60px rgba(60, 40, 10, 0.18);
+        color-scheme: light;
+      }
+      html[data-theme="light"] body {
+        background:
+          radial-gradient(circle at 50% 15%, rgba(201, 149, 63, 0.16), transparent 38%),
+          radial-gradient(circle at 50% 100%, rgba(201, 149, 63, 0.1), transparent 42%),
+          var(--bg);
+      }
+      html[data-theme="light"] [class*="panel"],
+      html[data-theme="light"] .brand-logo { background-color: rgba(255, 255, 255, 0.7); }
+      html[data-theme="light"] .brand-logo { background-image: none; }
+    </style>
+
 
     <style>
       /* =====================================================

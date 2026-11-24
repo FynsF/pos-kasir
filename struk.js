@@ -152,6 +152,14 @@
      ====================================================================== */
 
   function ambilDataStruk() {
+    /* --- 0. Dari riwayat transaksi (?inv=INVOICE) --- */
+    const inv = getQueryParams().inv;
+    if (inv) {
+      const riwayat = getLocal("fyncoffee_history_v1");
+      const ketemu = Array.isArray(riwayat) ? riwayat.find((r) => String(r.invoice) === String(inv)) : null;
+      if (ketemu) return ketemu;
+    }
+
     /* --- 1. Dari window.opener (popup dari POS) --- */
     try {
       if (window.opener && !window.opener.closed) {
@@ -380,7 +388,7 @@
     const invoiceId =
       data.id || data.invoice || data.noTransaksi || generateInvoiceId();
     setText("id", invoiceId);
-    setText("tanggal", formatTanggal(data.tanggal || data.date || Date.now()));
+    setText("tanggal", formatTanggal(data.tanggal_iso || data.tanggal || data.date || Date.now()));
     setText("kasir", data.kasir || data.cashier || STORE.cashier);
 
     /* --- Status badge --- */

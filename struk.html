@@ -12,6 +12,15 @@
       rel="stylesheet"
     />
 
+        <script>
+      (function () {
+        var t = null;
+        try { t = localStorage.getItem("fyncoffee_theme"); } catch (e) {}
+        if (t !== "light" && t !== "dark") t = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", t);
+        window.addEventListener("storage", function (e) { if (e.key === "fyncoffee_theme" && e.newValue) document.documentElement.setAttribute("data-theme", e.newValue); });
+      })();
+    </script>
     <title>Struk FYNCOFFEE</title>
 
     <style>
@@ -668,6 +677,31 @@
       :focus-visible {
         outline: 2px solid #d6b26a;
         outline-offset: 3px;
+      }
+
+
+      /* =====================================================
+         TEMA TERANG
+      ===================================================== */
+      @media screen {
+        :root[data-theme="light"] html,
+        :root[data-theme="light"] body,
+        html[data-theme="light"] body {
+          background: #f6f1e9;
+          color: #231a10;
+        }
+        html[data-theme="light"] #struk::before,
+        html[data-theme="light"] #struk::after {
+          background-image:
+            linear-gradient(45deg, transparent 50%, #f6f1e9 50%),
+            linear-gradient(-45deg, transparent 50%, #f6f1e9 50%);
+        }
+        html[data-theme="light"] #struk { box-shadow: 0 14px 34px rgba(60, 40, 10, 0.2); }
+        html[data-theme="light"] .actions-title { color: #8a5f1c; }
+        html[data-theme="light"] button { background: linear-gradient(135deg, #efcf85, #d4a246 52%, #b9852f); color: #2a1a05; box-shadow: 0 8px 20px rgba(185, 133, 47, 0.28); }
+        html[data-theme="light"] .btn-pdf { background: #fff; color: #8a5f1c; border: 1px solid rgba(138, 95, 28, 0.4); box-shadow: 0 6px 16px rgba(60, 40, 10, 0.1); }
+        html[data-theme="light"] .btn-ghost { background: transparent; color: #5d4f3d; border: 1px solid rgba(138, 95, 28, 0.3); box-shadow: none; }
+        html[data-theme="light"] .btn-ghost:hover { background: rgba(185, 133, 47, 0.1); color: #231a10; }
       }
 
       /* =====================================================
